@@ -1,0 +1,6 @@
+.idea
+ChromeDriver/
+src/main/resources/*.properties
+src/test/
+target/
+*.iml
