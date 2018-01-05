@@ -1,17 +1,17 @@
 package pro.bigbro.models.reportUnits;
 
-public class ClientStatForCity {
+public class AverageClientVisit {
     private int month;
     private int year;
-    private int clientCount;
+    private double averageVisit;
 
-    public ClientStatForCity() {
+    public AverageClientVisit() {
     }
 
-    public ClientStatForCity(int month, int year, int clientCount) {
+    public AverageClientVisit(int month, int year, double averageVisit) {
         this.month = month;
         this.year = year;
-        this.clientCount = clientCount;
+        this.averageVisit = averageVisit;
     }
 
     public int getMonth() {
@@ -30,11 +30,11 @@ public class ClientStatForCity {
         this.year = year;
     }
 
-    public int getClientCount() {
-        return clientCount;
+    public double getAverageVisit() {
+        return averageVisit;
     }
 
-    public void setClientCount(int clientCount) {
-        this.clientCount = clientCount;
+    public void setAverageVisit(double averageVisit) {
+        this.averageVisit = averageVisit;
     }
 }

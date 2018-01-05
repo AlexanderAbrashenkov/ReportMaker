@@ -4,21 +4,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import pro.bigbro.models.reportUnits.ClientStatForCity;
+import pro.bigbro.models.reportUnits.ClientStat;
 
 import javax.sql.DataSource;
 import java.util.List;
 
 @Component
-public class ClientStatForCityJdbcTemplate {
+public class ClientStatJdbcTemplate {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ClientStatForCityJdbcTemplate(DataSource dataSource) {
+    public ClientStatJdbcTemplate(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    private String SQL_FIND_TOTAL_CLIENTS_FOR_CITY = "SELECT date_part('year', rt.datetime) as year, date_part('month', rt.datetime) as mon, count(*) as clients\n" +
+    private String SQL_FIND_TOTAL_CLIENTS = "SELECT date_part('year', rt.datetime) as year, date_part('month', rt.datetime) as mon, count(*) as clients\n" +
             "FROM record_transaction rt\n" +
             "  LEFT JOIN staff s ON s.id = rt.staff_id\n" +
             "  WHERE rt.city_id = ?\n" +
@@ -27,7 +27,7 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private String SQL_FIND_CLIENTS_FOR_CITY_BY_VISIT = "SELECT\n" +
+    private String SQL_FIND_CLIENTS_BY_VISIT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
             "  date_part('month', rt.datetime) AS mon,\n" +
             "  count(*)                        AS clients\n" +
@@ -40,7 +40,7 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private String SQL_FIND_TOTAL_CLIENTS_FOR_CITY_CUT = "SELECT\n" +
+    private String SQL_FIND_TOTAL_CLIENTS_CUT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
             "  date_part('month', rt.datetime) AS mon,\n" +
             "  count(*)                        AS clients\n" +
@@ -60,7 +60,7 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private String SQL_FIND_CLIENTS_FOR_CITY_BY_VISIT_CUT = "SELECT\n" +
+    private String SQL_FIND_CLIENTS_BY_VISIT_CUT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
             "  date_part('month', rt.datetime) AS mon,\n" +
             "  count(*)                        AS clients\n" +
@@ -81,7 +81,7 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private String SQL_FIND_ANONIM_CLIENTS_FOR_CITY = "SELECT\n" +
+    private String SQL_FIND_ANONIM_CLIENTS = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
             "  date_part('month', rt.datetime) AS mon,\n" +
             "  count(*)                        AS clients\n" +
@@ -94,7 +94,7 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private String SQL_FIND_CLIENTS_WITHOUT_LINKS_FOR_CITY = "SELECT\n" +
+    private String SQL_FIND_CLIENTS_WITHOUT_LINKS = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
             "  date_part('month', rt.datetime) AS mon,\n" +
             "  count(*)                        AS clients\n" +
@@ -108,36 +108,36 @@ public class ClientStatForCityJdbcTemplate {
             "GROUP BY 1, 2\n" +
             "ORDER BY 1, 2";
 
-    private RowMapper<ClientStatForCity> clientStatForCityRowMapper = (resultSet, i) ->
-            new ClientStatForCity(
+    private RowMapper<ClientStat> clientStatRowMapper = (resultSet, i) ->
+            new ClientStat(
                     resultSet.getInt("mon"),
                     resultSet.getInt("year"),
                     resultSet.getInt("clients")
             );
 
-    public List<ClientStatForCity> findAllClientsForCity(int cityId) {
-        return jdbcTemplate.query(SQL_FIND_TOTAL_CLIENTS_FOR_CITY, clientStatForCityRowMapper, cityId);
+    public List<ClientStat> findAllClients(int cityId) {
+        return jdbcTemplate.query(SQL_FIND_TOTAL_CLIENTS, clientStatRowMapper, cityId);
     }
 
-    public List<ClientStatForCity> findClientsForCityByVisitNum(int cityId, int visitFrom, int visitTo) {
-        return jdbcTemplate.query(SQL_FIND_CLIENTS_FOR_CITY_BY_VISIT, clientStatForCityRowMapper,
+    public List<ClientStat> findClientsByVisitNum(int cityId, int visitFrom, int visitTo) {
+        return jdbcTemplate.query(SQL_FIND_CLIENTS_BY_VISIT, clientStatRowMapper,
                 cityId, visitFrom, visitTo);
     }
 
-    public List<ClientStatForCity> findAllClientsForCityCut(int cityId) {
-        return jdbcTemplate.query(SQL_FIND_TOTAL_CLIENTS_FOR_CITY_CUT, clientStatForCityRowMapper, cityId);
+    public List<ClientStat> findAllClientsCut(int cityId) {
+        return jdbcTemplate.query(SQL_FIND_TOTAL_CLIENTS_CUT, clientStatRowMapper, cityId);
     }
 
-    public List<ClientStatForCity> findClientsForCityByVisitNumCut(int cityId, int visitFrom, int visitTo) {
-        return jdbcTemplate.query(SQL_FIND_CLIENTS_FOR_CITY_BY_VISIT_CUT, clientStatForCityRowMapper,
+    public List<ClientStat> findClientsByVisitNumCut(int cityId, int visitFrom, int visitTo) {
+        return jdbcTemplate.query(SQL_FIND_CLIENTS_BY_VISIT_CUT, clientStatRowMapper,
                 cityId, visitFrom, visitTo);
     }
 
-    public List<ClientStatForCity> findAnonimClientsForCity(int cityId) {
-        return jdbcTemplate.query(SQL_FIND_ANONIM_CLIENTS_FOR_CITY, clientStatForCityRowMapper, cityId);
+    public List<ClientStat> findAnonimClients(int cityId) {
+        return jdbcTemplate.query(SQL_FIND_ANONIM_CLIENTS, clientStatRowMapper, cityId);
     }
 
-    public List<ClientStatForCity> findClientsWithoutLinksForCity(int cityId) {
-        return jdbcTemplate.query(SQL_FIND_CLIENTS_WITHOUT_LINKS_FOR_CITY, clientStatForCityRowMapper, cityId);
+    public List<ClientStat> findClientsWithoutLinks(int cityId) {
+        return jdbcTemplate.query(SQL_FIND_CLIENTS_WITHOUT_LINKS, clientStatRowMapper, cityId);
     }
 }

@@ -36,7 +36,7 @@ public class StaffJdbcTemplate {
         return new StaffJdbc(
                 resultSet.getLong("id"),
                 resultSet.getLong("city_id"),
-                resultSet.getString("name"),
+                resultSet.getString("name") == null ? "Удаленные" : resultSet.getString("name"),
                 resultSet.getString("title"),
                 resultSet.getString("specialization"),
                 resultSet.getInt("hidden"),
