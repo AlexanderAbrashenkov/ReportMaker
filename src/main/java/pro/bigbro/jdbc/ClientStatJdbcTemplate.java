@@ -24,8 +24,7 @@ public class ClientStatJdbcTemplate {
             "  WHERE rt.city_id = ?\n" +
             "  and rt.attendance = 1\n" +
             "  AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private String SQL_FIND_CLIENTS_BY_VISIT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
@@ -37,8 +36,7 @@ public class ClientStatJdbcTemplate {
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private String SQL_FIND_TOTAL_CLIENTS_CUT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
@@ -57,8 +55,7 @@ public class ClientStatJdbcTemplate {
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "  and r.max = 1\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private String SQL_FIND_CLIENTS_BY_VISIT_CUT = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
@@ -78,8 +75,7 @@ public class ClientStatJdbcTemplate {
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "  and r.max = 1\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private String SQL_FIND_ANONIM_CLIENTS = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
@@ -91,8 +87,7 @@ public class ClientStatJdbcTemplate {
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND rt.client_id IS NULL\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private String SQL_FIND_CLIENTS_WITHOUT_LINKS = "SELECT\n" +
             "  date_part('year', rt.datetime)  AS year,\n" +
@@ -105,8 +100,38 @@ public class ClientStatJdbcTemplate {
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND (rt.client_id is null or c.has_link = 0)\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
+
+    private String SQL_COUNT_POTENTIALS = "SELECT q.year, q.mon,\n" +
+            "  round(sum(q.potential), 0) as clients\n" +
+            "FROM (\n" +
+            "  SELECT\n" +
+            "    rec.id,\n" +
+            "    rec.name,\n" +
+            "    rec.year,\n" +
+            "    rec.mon,\n" +
+            "    avg(rec.clients),\n" +
+            "    max(rec.clients),\n" +
+            "    count(rec.clients),\n" +
+            "    (avg(rec.clients) + max(rec.clients)) / 2 * count(rec.clients) AS potential\n" +
+            "  FROM (\n" +
+            "         SELECT\n" +
+            "           s.id,\n" +
+            "           s.name,\n" +
+            "           extract(YEAR FROM rt.datetime)  AS year,\n" +
+            "           extract(MONTH FROM rt.datetime) AS mon,\n" +
+            "           extract(DAY FROM rt.datetime)   AS day,\n" +
+            "           count(*)                        AS clients\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "         WHERE rt.city_id = ?\n" +
+            "               AND rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "         GROUP BY 1, 2, 3, 4, 5\n" +
+            "       ) rec\n" +
+            "  GROUP BY 1, 2, 3, 4\n" +
+            ") q\n" +
+            "GROUP BY 1, 2";
 
     private RowMapper<ClientStat> clientStatRowMapper = (resultSet, i) ->
             new ClientStat(
@@ -139,5 +164,9 @@ public class ClientStatJdbcTemplate {
 
     public List<ClientStat> findClientsWithoutLinks(int cityId) {
         return jdbcTemplate.query(SQL_FIND_CLIENTS_WITHOUT_LINKS, clientStatRowMapper, cityId);
+    }
+
+    public List<ClientStat> findPotential(int cityId) {
+        return jdbcTemplate.query(SQL_COUNT_POTENTIALS, clientStatRowMapper, cityId);
     }
 }

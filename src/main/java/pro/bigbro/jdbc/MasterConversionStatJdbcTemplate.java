@@ -39,8 +39,7 @@ public class MasterConversionStatJdbcTemplate {
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_CLIENTS_RETURN_CUT = "SELECT\n" +
             "  s.name,\n" +
@@ -64,8 +63,7 @@ public class MasterConversionStatJdbcTemplate {
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_CLIENTS_ALL = "SELECT\n" +
             "  s.name,\n" +
@@ -77,8 +75,7 @@ public class MasterConversionStatJdbcTemplate {
             "WHERE rt.city_id = ?\n" +
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_CLIENTS_RETURN = "SELECT\n" +
             "  s.name,\n" +
@@ -92,8 +89,7 @@ public class MasterConversionStatJdbcTemplate {
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private RowMapper<MasterConversionStat> masterConversionStatRowMapper = (resultSet, i) ->
             new MasterConversionStat(

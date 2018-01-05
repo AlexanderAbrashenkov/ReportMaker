@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -165,8 +167,8 @@ public class ExcelService {
     }
 
     public void writeFrequency(List<FrequencyStat> frequencyStatList, CityGeneral cityGeneral) {
-        List<String> masters = frequencyStatList.stream()
-                .map(frequencyStat -> frequencyStat.getMasterName())
+        List<String> masters = cityGeneral.getStaffJdbcList().stream()
+                .map(staffJdbc -> staffJdbc.getName())
                 .distinct()
                 .collect(Collectors.toList());
         for (String master : masters) {
@@ -213,6 +215,159 @@ public class ExcelService {
                     .orElse(0.0d);
             cell = row.createCell(cellIndex++);
             cell.setCellValue(clientsOrTime);
+        }
+    }
+
+    public void writeDaysForSpreading() {
+        row = sheet.createRow(rowIndex++);
+        XSSFRow row2 = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue("Месяц");
+        for (int i = 1; i < 5; i++) {
+            for (int j = 1; j < 8; j++) {
+                cell = row.createCell(7 * (i - 1) + j);
+                cell.setCellValue(i);
+                cell = row2.createCell(7 * (i - 1) + j);
+                cell.setCellValue(j);
+            }
+        }
+    }
+
+    public void writeSpreadingStat(List<SpreadingStat> spreadingStatList, CityGeneral cityGeneral) {
+        for (WorkingMonth workingMonth : cityGeneral.getWorkingMonthList()) {
+            List<SpreadingStat> dataToWrite = spreadingStatList.stream()
+                    .filter(spreadingStat -> spreadingStat.getMon() == workingMonth.getMonthNum())
+                    .filter(spreadingStat -> spreadingStat.getYear() == workingMonth.getYearNum())
+                    .collect(Collectors.toList());
+            writeSpreadingStatOneRow(dataToWrite, workingMonth.getYearNum(), workingMonth.getMonthNum());
+        }
+    }
+
+    private void writeSpreadingStatOneRow(List<SpreadingStat> dataToWrite, int year, int month) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue(month + "." + year);
+        for (int i = 1; i < 5; i++) {
+            for (int j = 1; j < 8; j++) {
+                int week = i;
+                int dow = j;
+                cell = row.createCell(7 * (i - 1) + j);
+                int clients = dataToWrite.stream()
+                        .filter(spreadingStat -> spreadingStat.getWeek() == week)
+                        .filter(spreadingStat -> spreadingStat.getDayOfWeek() == dow)
+                        .map(spreadingStat -> spreadingStat.getClients())
+                        .findFirst()
+                        .orElse(0);
+                cell.setCellValue(clients);
+            }
+        }
+    }
+
+    public void writeSpreadingDaysCount(List<SpreadingDaysCount> spreadingDaysCounts) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue("Кол-во дней");
+        for (int i = 1; i < 5; i++) {
+            for (int j = 1; j < 8; j++) {
+                int week = i;
+                int dow = j;
+                cell = row.createCell(7 * (i - 1) + j);
+                int clients = spreadingDaysCounts.stream()
+                        .filter(spreadingStat -> spreadingStat.getWeek() == week)
+                        .filter(spreadingStat -> spreadingStat.getDayOfWeek() == dow)
+                        .map(spreadingStat -> spreadingStat.getDaysCount())
+                        .findFirst()
+                        .orElse(0);
+                cell.setCellValue(clients);
+            }
+        }
+    }
+
+    public void writeGoodsStat(List<GoodsStat> goodsStatList, CityGeneral cityGeneral) {
+        Map<Integer, String> goodsMap = goodsStatList.stream()
+                .collect(Collectors.toMap(GoodsStat::getGoodId, GoodsStat::getGoodTitle, (s, s2) -> s));
+
+        for (Map.Entry<Integer, String> pair : goodsMap.entrySet()) {
+            List<GoodsStat> dataToWrite = goodsStatList.stream()
+                    .filter(goodsStat -> goodsStat.getGoodId() == pair.getKey())
+                    .collect(Collectors.toList());
+            writeGoodsStatOneRow(dataToWrite, cityGeneral.getWorkingMonthList(), pair.getValue());
+        }
+    }
+
+    private void writeGoodsStatOneRow(List<GoodsStat> dataToWrite, List<WorkingMonth> workingMonthList, String goodTitle) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue(goodTitle);
+        int cellIndex = 1;
+        for (WorkingMonth workingMonth : workingMonthList) {
+            double sales = dataToWrite.stream()
+                    .filter(clientStat -> clientStat.getYear() == workingMonth.getYearNum())
+                    .filter(clientStat -> clientStat.getMon() == workingMonth.getMonthNum())
+                    .map(clientStat -> clientStat.getSales())
+                    .findFirst()
+                    .orElse(0.0d);
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(sales);
+        }
+    }
+
+    public void writeMonthesForGoodsByMasters(List<WorkingMonth> workingMonthList) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue("Мастер");
+        int cellIndex = 1;
+        for (WorkingMonth workingMonth : workingMonthList) {
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(workingMonth.getMonthNum() + "." + workingMonth.getYearNum());
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(workingMonth.getMonthNum() + "." + workingMonth.getYearNum());
+        }
+    }
+
+    public void writeGoodsByMastersStat(List<GoodsMasterStat> goodsMasterStatList, CityGeneral cityGeneral) {
+        Map<Long, String> mastersMap = cityGeneral.getStaffJdbcList().stream()
+                .collect(Collectors.toMap(StaffJdbc::getId, StaffJdbc::getName, (s, s2) -> s));
+        mastersMap = mastersMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (s, s2) -> s,
+                        LinkedHashMap::new
+                ));
+
+        for (Map.Entry<Long, String> pair : mastersMap.entrySet()) {
+            List<GoodsMasterStat> dataToWrite = goodsMasterStatList.stream()
+                    .filter(goodsStat -> goodsStat.getMasterId() == pair.getKey())
+                    .collect(Collectors.toList());
+            writeGoodsByMastersStatOneRow(dataToWrite, cityGeneral.getWorkingMonthList(), pair.getValue());
+        }
+    }
+
+    private void writeGoodsByMastersStatOneRow(List<GoodsMasterStat> dataToWrite, List<WorkingMonth> workingMonthList, String masterName) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue(masterName);
+        int cellIndex = 1;
+        for (WorkingMonth workingMonth : workingMonthList) {
+            double sales = dataToWrite.stream()
+                    .filter(clientStat -> clientStat.getYear() == workingMonth.getYearNum())
+                    .filter(clientStat -> clientStat.getMonth() == workingMonth.getMonthNum())
+                    .map(clientStat -> clientStat.getSales())
+                    .findFirst()
+                    .orElse(0.0d);
+            double spc = dataToWrite.stream()
+                    .filter(goodsMasterStat -> goodsMasterStat.getYear() == workingMonth.getYearNum())
+                    .filter(goodsMasterStat -> goodsMasterStat.getMonth() == workingMonth.getMonthNum())
+                    .map(goodsMasterStat -> goodsMasterStat.getSalesPerClient())
+                    .findFirst()
+                    .orElse(0.0d);
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(sales);
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(spc);
         }
     }
 

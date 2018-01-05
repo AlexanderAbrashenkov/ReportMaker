@@ -19,10 +19,14 @@ public class WorkingMonthesJdbcTemplate {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    private String SQL_FIND_PERIODS_FOR_CITY = "SELECT DISTINCT date_part('year', datetime) as year, date_part('month', datetime) as mon\n" +
-            "from record_transaction\n" +
-            "WHERE city_id = ?\n" +
-            "ORDER BY 1, 2";
+    private String SQL_FIND_PERIODS_FOR_CITY = "SELECT DISTINCT\n" +
+            "  extract(year FROM rt.datetime)  AS year,\n" +
+            "  extract(month FROM rt.datetime) AS mon\n" +
+            "FROM record_transaction rt\n" +
+            "  LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "WHERE rt.city_id = ?\n" +
+            "  and rt.attendance = 1\n" +
+            "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')";
 
     private RowMapper<WorkingMonth> workingMonthesRowMapper = (resultSet, i) ->
         new WorkingMonth(

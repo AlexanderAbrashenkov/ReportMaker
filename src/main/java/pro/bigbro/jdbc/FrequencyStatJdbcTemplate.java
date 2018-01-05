@@ -41,8 +41,7 @@ public class FrequencyStatJdbcTemplate {
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_RETURN_CLIENT_BY_MASTERS_CUT = "SELECT\n" +
             "  s.name,\n" +
@@ -66,8 +65,7 @@ public class FrequencyStatJdbcTemplate {
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_RETURN_TIME_ALL_CUT = "SELECT\n" +
             "'По всем мастерам' as name,\n" +
@@ -91,8 +89,7 @@ public class FrequencyStatJdbcTemplate {
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private String SQL_RETURN_CLIENT_ALL_CUT = "SELECT\n" +
             "'По всем мастерам' as name,\n" +
@@ -116,8 +113,7 @@ public class FrequencyStatJdbcTemplate {
             "      AND rt.client_has_next_visit = 1\n" +
             "      AND rt.visit_number >= ? AND rt.visit_number < ?\n" +
             "      AND rt.days_between_visits >= ? AND rt.days_between_visits < ?\n" +
-            "GROUP BY 1, 2, 3\n" +
-            "ORDER BY 1, 2, 3";
+            "GROUP BY 1, 2, 3";
 
     private RowMapper<FrequencyStat> returnTimeStatRowMapper = (resultSet, i) ->
             new FrequencyStat(

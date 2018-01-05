@@ -3,10 +3,7 @@ package pro.bigbro.services.counting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro.bigbro.apachePoi.ExcelService;
-import pro.bigbro.jdbc.AverageClientVisitJdbcTemplate;
-import pro.bigbro.jdbc.ClientStatJdbcTemplate;
-import pro.bigbro.jdbc.FrequencyStatJdbcTemplate;
-import pro.bigbro.jdbc.MasterConversionStatJdbcTemplate;
+import pro.bigbro.jdbc.*;
 import pro.bigbro.models.cities.City;
 import pro.bigbro.models.reportUnits.*;
 import pro.bigbro.repositories.CityRepository;
@@ -31,6 +28,10 @@ public class DataService {
     private MasterConversionStatJdbcTemplate masterConversionStatJdbcTemplate;
     @Autowired
     private FrequencyStatJdbcTemplate frequencyStatJdbcTemplate;
+    @Autowired
+    private SpreadingStatJdbcTemplate spreadingStatJdbcTemplate;
+    @Autowired
+    private GoodsStatJdbcTemplate goodsStatJdbcTemplate;
 
     public void countAndWriteData() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -115,6 +116,13 @@ public class DataService {
             excelService.writeCityClientsStat(clientStatForCities, cityGeneral.getWorkingMonthList(), "Без ссылки");
             excelService.addEmptyRow();
 
+            // Потенциал
+            excelService.writeCityStatHeader("Потенциал");
+            excelService.writeMonthes(cityGeneral.getWorkingMonthList());
+            clientStatForCities = clientStatJdbcTemplate.findPotential(city.getId());
+            excelService.writeCityClientsStat(clientStatForCities, cityGeneral.getWorkingMonthList(), "Потенциал");
+            excelService.addEmptyRow();
+
             // Средний возраст клиентов по месяцам
             excelService.writeCityStatHeader("Динамика по городам средний возраст клиентов");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
@@ -159,6 +167,36 @@ public class DataService {
             List<FrequencyStat> frequencyStatList = frequencyStatJdbcTemplate.getAllStats(city.getId());
             excelService.writeFrequency(frequencyStatList, cityGeneral);
             excelService.addEmptyRow();
+
+
+            // Распределение по дням
+            excelService.writeCityStatHeader("Распределение");
+            excelService.writeDaysForSpreading();
+            List<SpreadingStat> spreadingStatList = spreadingStatJdbcTemplate.getSpreadingStat(city.getId());
+            excelService.writeSpreadingStat(spreadingStatList, cityGeneral);
+            excelService.addEmptyRow();
+            excelService.writeCityStatHeader("Распределение");
+            excelService.writeDaysForSpreading();
+            List<SpreadingDaysCount> spreadingDaysCounts = spreadingStatJdbcTemplate.getSpreadingDaysCount(city.getId());
+            excelService.writeSpreadingDaysCount(spreadingDaysCounts);
+            excelService.addEmptyRow();
+
+
+            // Товары по месяцам
+            excelService.writeCityStatHeader("Товары по месяцам");
+            excelService.writeMonthes(cityGeneral.getWorkingMonthList());
+            List<GoodsStat> goodsStatList = goodsStatJdbcTemplate.getAllGoodsStats(city.getId());
+            excelService.writeGoodsStat(goodsStatList, cityGeneral);
+            excelService.addEmptyRow();
+
+
+            // Товары по местерам
+            excelService.writeCityStatHeader("Товары по мастерам");
+            excelService.writeMonthesForGoodsByMasters(cityGeneral.getWorkingMonthList());
+            List<GoodsMasterStat> goodsMasterStatList = goodsStatJdbcTemplate.getAllGoodsByMastersStat(city.getId());
+            excelService.writeGoodsByMastersStat(goodsMasterStatList, cityGeneral);
+            excelService.addEmptyRow();
+
 
             excelService.saveWorkbook(city.getName());
         }

@@ -29,8 +29,7 @@ public class AverageClientVisitJdbcTemplate {
             "WHERE rt.city_id = ?\n" +
             "      AND rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
-            "GROUP BY 1, 2\n" +
-            "ORDER BY 1, 2";
+            "GROUP BY 1, 2";
 
     private RowMapper<AverageClientVisit> averageClientVisitRowMapper = (resultSet, i) ->
             new AverageClientVisit(
