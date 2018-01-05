@@ -5,12 +5,10 @@ import org.springframework.stereotype.Service;
 import pro.bigbro.apachePoi.ExcelService;
 import pro.bigbro.jdbc.AverageClientVisitJdbcTemplate;
 import pro.bigbro.jdbc.ClientStatJdbcTemplate;
+import pro.bigbro.jdbc.FrequencyStatJdbcTemplate;
 import pro.bigbro.jdbc.MasterConversionStatJdbcTemplate;
 import pro.bigbro.models.cities.City;
-import pro.bigbro.models.reportUnits.AverageClientVisit;
-import pro.bigbro.models.reportUnits.CityGeneral;
-import pro.bigbro.models.reportUnits.ClientStat;
-import pro.bigbro.models.reportUnits.MasterConversionStat;
+import pro.bigbro.models.reportUnits.*;
 import pro.bigbro.repositories.CityRepository;
 
 import java.util.List;
@@ -31,6 +29,8 @@ public class DataService {
     private AverageClientVisitJdbcTemplate averageClientVisitJdbcTemplate;
     @Autowired
     private MasterConversionStatJdbcTemplate masterConversionStatJdbcTemplate;
+    @Autowired
+    private FrequencyStatJdbcTemplate frequencyStatJdbcTemplate;
 
     public void countAndWriteData() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -150,6 +150,14 @@ public class DataService {
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             masterConversionStatList = masterConversionStatJdbcTemplate.getAllStatKAll(city.getId());
             excelService.writeConversion(masterConversionStatList, cityGeneral);
+            excelService.addEmptyRow();
+
+
+            // Частотность
+            excelService.writeCityStatHeader("Частотность");
+            excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
+            List<FrequencyStat> frequencyStatList = frequencyStatJdbcTemplate.getAllStats(city.getId());
+            excelService.writeFrequency(frequencyStatList, cityGeneral);
             excelService.addEmptyRow();
 
             excelService.saveWorkbook(city.getName());

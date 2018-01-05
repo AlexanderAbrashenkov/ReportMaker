@@ -164,6 +164,58 @@ public class ExcelService {
         }
     }
 
+    public void writeFrequency(List<FrequencyStat> frequencyStatList, CityGeneral cityGeneral) {
+        List<String> masters = frequencyStatList.stream()
+                .map(frequencyStat -> frequencyStat.getMasterName())
+                .distinct()
+                .collect(Collectors.toList());
+        for (String master : masters) {
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "вернулось К", 3, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "вернулось НК", 1, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "вернулось ПК", 2, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "время возврата К, дн", 3, 2);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "время возврата НК, дн", 1, 2);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "время возврата ПК, дн", 2, 2);
+
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "вернулось К позже 3 мес", 3, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "вернулось НК позже 3 мес", 1, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "вернулось ПК позже 3 мес", 2, 1);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "время возврата К общ, дн", 3, 2);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "время возврата НК общ, дн", 1, 2);
+            filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 2, "время возврата ПК общ, дн", 2, 2);
+        }
+    }
+
+    private void filterAndWriteFrequencyRow(List<FrequencyStat> src, List<WorkingMonth> workingMonthList,
+                                            String masterName, int type, String title, int clientType, int reportType) {
+        List<FrequencyStat> dataToWrite = src.stream()
+                .filter(frequencyStat -> frequencyStat.getMasterName().equals(masterName))
+                .filter(frequencyStat -> frequencyStat.getComebackTimeType() == type)
+                .filter(frequencyStat -> frequencyStat.getClientType() == clientType)
+                .filter(frequencyStat -> frequencyStat.getReportType() == reportType)
+                .collect(Collectors.toList());
+        writeFrequencyOneRow(dataToWrite, workingMonthList, masterName, title);
+    }
+
+    private void writeFrequencyOneRow(List<FrequencyStat> dataToWrite, List<WorkingMonth> workingMonthList, String masterName, String title) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue(masterName);
+        cell = row.createCell(1);
+        cell.setCellValue(title);
+        int cellIndex = 2;
+        for (WorkingMonth workingMonth : workingMonthList) {
+            double clientsOrTime = dataToWrite.stream()
+                    .filter(clientStat -> clientStat.getYear() == workingMonth.getYearNum())
+                    .filter(clientStat -> clientStat.getMonth() == workingMonth.getMonthNum())
+                    .map(clientStat -> clientStat.getClientsOrTime())
+                    .findFirst()
+                    .orElse(0.0d);
+            cell = row.createCell(cellIndex++);
+            cell.setCellValue(clientsOrTime);
+        }
+    }
+
     public void addEmptyRow() {
         rowIndex++;
     }
