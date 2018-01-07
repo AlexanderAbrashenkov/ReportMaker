@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import pro.bigbro.models.reportUnits.total.DataTotal;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -202,6 +203,379 @@ public class DataTotalJdbcTemplate {
             "GROUP BY 1, 2, 3, 4) r\n" +
             "GROUP BY 1, 2";
 
+    private String SQL_CONVERSION_MONTH_BY_CITIES = "SELECT r1.id, r1.name, r2.cl / r1.cl :: FLOAT as res\n" +
+            "from (SELECT\n" +
+            "  c.id,\n" +
+            "  c.name,\n" +
+            "  count(*) as cl\n" +
+            "FROM record_transaction rt\n" +
+            "  LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "  JOIN city c ON c.id = rt.city_id\n" +
+            "WHERE rt.attendance = 1\n" +
+            "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "      AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "      AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "GROUP BY 1, 2) r1\n" +
+            "JOIN (\n" +
+            "    SELECT\n" +
+            "      c.id,\n" +
+            "      c.name,\n" +
+            "      count(*) as cl\n" +
+            "    FROM record_transaction rt\n" +
+            "      LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "      JOIN city c ON c.id = rt.city_id\n" +
+            "    WHERE rt.attendance = 1\n" +
+            "          AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "          AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "          AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "          and rt.client_has_next_visit = 1\n" +
+            "          and rt.days_between_visits < ?\n" +
+            "    GROUP BY 1, 2\n" +
+            "    ) r2 on r1.id = r2.id";
+
+    private String SQL_CONVERSION_MONTH_BY_CITIES_ANONIM = "SELECT\n" +
+            "  r1.id,\n" +
+            "  r1.name,\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        c.id,\n" +
+            "        c.name,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "            AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "      GROUP BY 1, 2) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           c.id,\n" +
+            "           c.name,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "               AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1, 2\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_MONTH_TOTAL = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "            AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "               AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_MONTH_TOTAL_ANONIM = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "            AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "               AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_3_MONTH_BY_CITIES = "SELECT\n" +
+            "  r1.id,\n" +
+            "  r1.name,\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        c.id,\n" +
+            "        c.name,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.datetime >= ?\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1, 2) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           c.id,\n" +
+            "           c.name,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.datetime >= ?\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1, 2\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_3_MONTH_BY_CITIES_ANONIM = "SELECT\n" +
+            "  r1.id,\n" +
+            "  r1.name,\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        c.id,\n" +
+            "        c.name,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND rt.datetime >= ?\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1, 2) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           c.id,\n" +
+            "           c.name,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND rt.datetime >= ?\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1, 2\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_3_MONTH_TOTAL = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.datetime >= ?\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.datetime >= ?\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_3_MONTH_TOTAL_ANONIM = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND rt.datetime >= ?\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND rt.datetime >= ?\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_ALL_TIME_BY_CITIES = "SELECT\n" +
+            "  r1.id,\n" +
+            "  r1.name,\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        c.id,\n" +
+            "        c.name,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1, 2) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           c.id,\n" +
+            "           c.name,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1, 2\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_ALL_TIME_BY_CITIES_ANONIM = "SELECT\n" +
+            "  r1.id,\n" +
+            "  r1.name,\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        c.id,\n" +
+            "        c.name,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1, 2) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           c.id,\n" +
+            "           c.name,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1, 2\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_ALL_TIME_TOTAL = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
+    private String SQL_CONVERSION_ALL_TIME_TOTAL_ANONIM = "SELECT\n" +
+            "  r2.cl / r1.cl :: FLOAT AS res\n" +
+            "FROM (SELECT\n" +
+            "        1 as id,\n" +
+            "        count(*) AS cl\n" +
+            "      FROM record_transaction rt\n" +
+            "        LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "        JOIN city c ON c.id = rt.city_id\n" +
+            "      WHERE rt.attendance = 1\n" +
+            "            AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "            AND rt.client_id IS NOT NULL\n" +
+            "            AND rt.datetime < ?\n" +
+            "      GROUP BY 1) r1\n" +
+            "  JOIN (\n" +
+            "         SELECT\n" +
+            "           1 as id,\n" +
+            "           count(*) AS cl\n" +
+            "         FROM record_transaction rt\n" +
+            "           LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "           JOIN city c ON c.id = rt.city_id\n" +
+            "         WHERE rt.attendance = 1\n" +
+            "               AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "               AND rt.client_id IS NOT NULL\n" +
+            "               AND rt.datetime < ?\n" +
+            "               AND rt.client_has_next_visit = 1\n" +
+            "               AND rt.days_between_visits < ?\n" +
+            "         GROUP BY 1\n" +
+            "       ) r2 ON r1.id = r2.id";
+
     private RowMapper<DataTotal> dataTotalRowMapper = (resultSet, i) ->
             new DataTotal(
                     resultSet.getInt("id"),
@@ -251,5 +625,77 @@ public class DataTotalJdbcTemplate {
 
     public List<DataTotal> getAverageClientPerMasterPerDay(int year, int month) {
         return jdbcTemplate.query(SQL_AVERAGE_CLIENTS_PER_MASTER_PER_DAY, dataTotalRowMapper, year, month);
+    }
+
+    public List<DataTotal> getConversionForMonth(int kYear, int kMonth, int time) {
+        return jdbcTemplate.query(SQL_CONVERSION_MONTH_BY_CITIES, dataTotalRowMapper, kYear, kMonth, kYear, kMonth, time);
+    }
+
+    public double getConversionForMonthSum(int kYear, int kMonth, int time) {
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_MONTH_TOTAL, Double.class, kYear, kMonth, kYear, kMonth, time).doubleValue();
+    }
+
+    public List<DataTotal> getConversionForMonthAnonim(int kYear, int kMonth, int time) {
+        return jdbcTemplate.query(SQL_CONVERSION_MONTH_BY_CITIES_ANONIM, dataTotalRowMapper, kYear, kMonth, kYear, kMonth, time);
+    }
+
+    public double getConversionforMonthAnonimSum(int kYear, int kMonth, int time) {
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_MONTH_TOTAL_ANONIM, Double.class, kYear, kMonth, kYear, kMonth, time).doubleValue();
+    }
+
+    public List<DataTotal> getConversion3Month(int year, int month, int time) {
+        LocalDateTime from = getTimestampFrom(year, month);
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.query(SQL_CONVERSION_3_MONTH_BY_CITIES, dataTotalRowMapper, from, to, from, to, time);
+    }
+
+    public List<DataTotal> getConversion3MonthAnonim(int year, int month, int time) {
+        LocalDateTime from = getTimestampFrom(year, month);
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.query(SQL_CONVERSION_3_MONTH_BY_CITIES_ANONIM, dataTotalRowMapper, from, to, from, to, time);
+    }
+
+    public List<DataTotal> getConversionAllTime(int year, int month, int time) {
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.query(SQL_CONVERSION_ALL_TIME_BY_CITIES, dataTotalRowMapper, to, to, time);
+    }
+
+    public List<DataTotal> getConversionAllTimeAnonim(int year, int month, int time) {
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.query(SQL_CONVERSION_ALL_TIME_BY_CITIES_ANONIM, dataTotalRowMapper, to, to, time);
+    }
+
+    public double getConversion3MonthTotal(int year, int month, int time) {
+        LocalDateTime from = getTimestampFrom(year, month);
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_3_MONTH_TOTAL, Double.class, from, to, from, to, time).doubleValue();
+    }
+
+    public double getConversion3MonthAnonimTotal(int year, int month, int time) {
+        LocalDateTime from = getTimestampFrom(year, month);
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_3_MONTH_TOTAL_ANONIM, Double.class, from, to, from, to, time);
+    }
+
+    public double getConversionAllTimeTotal(int year, int month, int time) {
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_ALL_TIME_TOTAL, Double.class, to, to, time);
+    }
+
+    public double getConversionAllTimeAnonimTotal(int year, int month, int time) {
+        LocalDateTime to = getTimestampTo(year, month);
+        return jdbcTemplate.queryForObject(SQL_CONVERSION_ALL_TIME_TOTAL_ANONIM, Double.class, to, to, time);
+    }
+
+
+
+    private LocalDateTime getTimestampFrom(int year, int month) {
+        return LocalDateTime.of(year, month, 1, 0, 0, 0)
+                .minusMonths(2);
+    }
+
+    private LocalDateTime getTimestampTo(int year, int month) {
+        return LocalDateTime.of(year, month, 1, 0, 0, 0)
+                .plusMonths(1);
     }
 }

@@ -360,6 +360,83 @@ public class DataService {
         excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
+
+        // конверсия
+        int kYear = countingService.yearForConversion(year, month, 2);
+        int kMonth = countingService.monthForConversion(year, month, 2);
+        getAllTypesOfConversion(2, kYear, kMonth, 60);
+
+        kYear = countingService.yearForConversion(year, month, 3);
+        kMonth = countingService.monthForConversion(year, month, 3);
+        getAllTypesOfConversion(3, kYear, kMonth, 90);
+
+        kYear = countingService.yearForConversion(year, month, 4);
+        kMonth = countingService.monthForConversion(year, month, 4);
+        excelService.writeHeader("конв. 4 мес все время");
+        dataTotalList = dataTotalJdbcTemplate.getConversionAllTime(kYear, kMonth, 120);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("конв. общая все время");
+        dataTotalList = dataTotalJdbcTemplate.getConversionAllTime(year, month, 100000);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+
         excelService.saveWorkbook("Total");
+    }
+
+    private void getAllTypesOfConversion (int monthes, int year, int month, int returnTime) {
+        List<DataTotal> dataTotalList;
+
+        excelService.writeHeader("конв. " + monthes + " мес за месяц");
+        dataTotalList = dataTotalJdbcTemplate.getConversionForMonth(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        double totalSummaryConversion = dataTotalJdbcTemplate.getConversionForMonthSum(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес за месяц итого", totalSummaryConversion);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("конв. " + monthes + " мес за месяц анонимы");
+        dataTotalList = dataTotalJdbcTemplate.getConversionForMonthAnonim(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        totalSummaryConversion = dataTotalJdbcTemplate.getConversionforMonthAnonimSum(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес за месяц анонимы итого", totalSummaryConversion);
+        excelService.addEmptyRow();
+
+
+        excelService.writeHeader("конв. " + monthes + " мес все время");
+        dataTotalList = dataTotalJdbcTemplate.getConversionAllTime(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        totalSummaryConversion = dataTotalJdbcTemplate.getConversionAllTimeTotal(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес все время итого", totalSummaryConversion);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("конв. " + monthes + " мес все время анонимы");
+        dataTotalList = dataTotalJdbcTemplate.getConversionAllTimeAnonim(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        totalSummaryConversion = dataTotalJdbcTemplate.getConversionAllTimeAnonimTotal(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес все время анонимы итого", totalSummaryConversion);
+        excelService.addEmptyRow();
+
+
+        excelService.writeHeader("конв. " + monthes + " мес за 3 мес");
+        dataTotalList = dataTotalJdbcTemplate.getConversion3Month(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        totalSummaryConversion = dataTotalJdbcTemplate.getConversion3MonthTotal(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес за 3 мес итого", totalSummaryConversion);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("конв. " + monthes + " мес за 3 мес анонимы");
+        dataTotalList = dataTotalJdbcTemplate.getConversion3MonthAnonim(year, month, returnTime);
+        excelService.writeTotalData(dataTotalList);
+
+        totalSummaryConversion = dataTotalJdbcTemplate.getConversion3MonthAnonimTotal(year, month, returnTime);
+        excelService.writeSingleRow("конв. " + monthes + " мес за 3 мес анонимы итого", totalSummaryConversion);
+        excelService.addEmptyRow();
     }
 }

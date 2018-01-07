@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import pro.bigbro.models.reportUnits.total.DataTotal;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,5 +30,15 @@ public class CountingService {
         return dataTotalList.stream()
                 .filter(dataTotal -> dataTotal.getValue() >= revenue)
                 .count();
+    }
+
+    public int yearForConversion(int year, int month, int i) {
+        return LocalDate.of(year, month, 1)
+                .minusMonths(i).getYear();
+    }
+
+    public int monthForConversion(int year, int month, int i) {
+        return LocalDate.of(year, month, 1)
+                .minusMonths(i).getMonthValue();
     }
 }
