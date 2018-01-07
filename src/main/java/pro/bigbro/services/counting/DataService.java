@@ -15,9 +15,11 @@ import pro.bigbro.models.reportUnits.total.ClientTotal;
 import pro.bigbro.models.reportUnits.total.DataTotal;
 import pro.bigbro.repositories.CityRepository;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DataService {
@@ -53,6 +55,9 @@ public class DataService {
     private ClientTotalJdbcTemplate clientTotalJdbcTemplate;
     @Autowired @Lazy
     private DataTotalJdbcTemplate dataTotalJdbcTemplate;
+
+    @Autowired @Lazy
+    private SeleniumService seleniumService;
 
     public void countAndWriteDataForCity() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -380,6 +385,23 @@ public class DataService {
         excelService.writeHeader("конв. общая все время");
         dataTotalList = dataTotalJdbcTemplate.getConversionAllTime(year, month, 100000);
         excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+
+        // данные по продолжительности
+        List<City> cityList = (List<City>) cityRepository.findAll();
+        Map<Integer, List<DataTotal>> lengthDataMap = null;
+        try {
+            lengthDataMap = seleniumService.getLengthData(cityList, year, month);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        excelService.writeHeader("ср. продолжительность услуги");
+        excelService.writeTotalData(lengthDataMap.get(1));
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("ср. продолжительность смены");
+        excelService.writeTotalData(lengthDataMap.get(2));
         excelService.addEmptyRow();
 
 
