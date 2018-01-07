@@ -1,12 +1,14 @@
-package pro.bigbro.jdbc;
+package pro.bigbro.jdbc.cities;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 
 @Component
+@Lazy
 public class ClientJdbcTemplate {
     private JdbcTemplate jdbcTemplate;
 

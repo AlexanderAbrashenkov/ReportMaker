@@ -2,22 +2,19 @@ package pro.bigbro.services.corrections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pro.bigbro.jdbc.ClientJdbcTemplate;
-import pro.bigbro.jdbc.RecordTransactionJdbcTemplate;
-import pro.bigbro.jdbc.ServiceTypeJdbcTemplate;
-import pro.bigbro.jdbc.StaffJdbcTemplate;
+import pro.bigbro.jdbc.cities.ClientJdbcTemplate;
+import pro.bigbro.jdbc.cities.RecordTransactionJdbcTemplate;
+import pro.bigbro.jdbc.cities.ServiceTypeJdbcTemplate;
+import pro.bigbro.jdbc.cities.StaffJdbcTemplate;
 import pro.bigbro.models.jdbc.ServiceTypeJdbc;
 import pro.bigbro.models.jdbc.StaffJdbc;
-import pro.bigbro.models.records.RecordTransaction;
-import pro.bigbro.repositories.ClientRepository;
-import pro.bigbro.repositories.RecordTransactionRepository;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @Service
 public class CorrectionService {
@@ -54,6 +51,30 @@ public class CorrectionService {
 
     public void askStaffIsMaster() throws IOException {
         List<StaffJdbc> staffJdbcList = staffJdbcTemplate.findAllStaffWithoutMarks();
+
+        staffJdbcList.forEach(staffJdbc -> {
+            String spec = staffJdbc.getSpecialization().toLowerCase();
+            if (spec.contains("админ")
+                    || spec.contains("главный")
+                    || spec.contains("директор")
+                    || spec.contains("управляющий")
+                    || spec.contains("руководитель")
+                    || spec.contains("управление")) {
+                staffJdbcTemplate.updateStaffMarkById(staffJdbc.getId(), "0");
+            } else if (spec.contains("барбер")
+                    || spec.contains("мастер")
+                    || spec.contains("стажер")
+                    || spec.contains("стрижет")
+                    || spec.contains("парикмахер")
+                    || spec.contains("ученик")) {
+                staffJdbcTemplate.updateStaffMarkById(staffJdbc.getId(), "1");
+            }
+        });
+
+        staffJdbcList = staffJdbcList.stream()
+                .filter(staffJdbc -> staffJdbc.getUseInRecords() == null)
+                .collect(Collectors.toList());
+
         staffJdbcList.sort(Comparator.comparing(staffJdbc -> staffJdbc.getSpecialization()));
         for (StaffJdbc staffJdbc : staffJdbcList) {
             boolean isNoAnswer = true;

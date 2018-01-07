@@ -6,12 +6,13 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import pro.bigbro.models.jdbc.StaffJdbc;
-import pro.bigbro.models.reportUnits.*;
+import pro.bigbro.models.reportUnits.cities.*;
+import pro.bigbro.models.reportUnits.total.ClientTotal;
+import pro.bigbro.models.reportUnits.total.DataTotal;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class ExcelService {
         rowIndex++;
     }
 
-    public void writeCityStatHeader(String title) {
+    public void writeHeader(String title) {
         row = sheet.createRow(rowIndex++);
         cell = row.createCell(0);
         cell.setCellValue(title);
@@ -171,6 +172,7 @@ public class ExcelService {
                 .map(staffJdbc -> staffJdbc.getName())
                 .distinct()
                 .collect(Collectors.toList());
+        masters.add(0, "По всем мастерам");
         for (String master : masters) {
             filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "вернулось К", 3, 1);
             filterAndWriteFrequencyRow(frequencyStatList, cityGeneral.getWorkingMonthList(), master, 1, "вернулось НК", 1, 1);
@@ -369,6 +371,38 @@ public class ExcelService {
             cell = row.createCell(cellIndex++);
             cell.setCellValue(spc);
         }
+    }
+
+    public void writeTotalClients(List<ClientTotal> clientTotalList) {
+        for(ClientTotal clientTotal : clientTotalList) {
+            row = sheet.createRow(rowIndex++);
+            cell = row.createCell(0);
+            cell.setCellValue(clientTotal.getCityId());
+            cell = row.createCell(1);
+            cell.setCellValue(clientTotal.getCityName());
+            cell = row.createCell(2);
+            cell.setCellValue(clientTotal.getClients());
+        }
+    }
+
+    public void writeTotalData(List<DataTotal> dataTotalList) {
+        for(DataTotal dataTotal : dataTotalList) {
+            row = sheet.createRow(rowIndex++);
+            cell = row.createCell(0);
+            cell.setCellValue(dataTotal.getCityId());
+            cell = row.createCell(1);
+            cell.setCellValue(dataTotal.getCityName());
+            cell = row.createCell(2);
+            cell.setCellValue(dataTotal.getValue());
+        }
+    }
+
+    public void writeSingleRow(String s, double v) {
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue(s);
+        cell = row.createCell(1);
+        cell.setCellValue(v);
     }
 
     public void addEmptyRow() {

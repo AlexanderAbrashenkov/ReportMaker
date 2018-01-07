@@ -19,6 +19,8 @@ public class Main {
     @Autowired
     private ClientRestTemplate clientRestTemplate;
     @Autowired
+    private ServiceRestTemplate serviceRestTemplate;
+    @Autowired
     private GoodsTransactionRestTemplate goodsTransactionRestTemplate;
     @Autowired
     private FinancialTransactionRestTemplate financialTransactionRestTemplate;
@@ -58,10 +60,16 @@ public class Main {
         reportDurationTime("Report Data Preparation", stageStart, stageFinish);
 
         // Высчитываем и записываем в файлы по городам данные
-        stageStart = stageFinish;
-        returnCode = countDatas();
+        //stageStart = stageFinish;
+        //returnCode = countDatasForCities();
         stageFinish = LocalDateTime.now();
-        reportDurationTime("Counting and writing data", stageStart, stageFinish);
+        reportDurationTime("Counting and writing data for cities", stageStart, stageFinish);
+
+        //Высчитываем и записываем в файл общую статистику
+        stageStart = stageFinish;
+        returnCode = countSummaryData();
+        stageFinish = LocalDateTime.now();
+        reportDurationTime("Counting and writing summary data", stageStart, stageFinish);
 
 
         System.exit(0);
@@ -70,6 +78,7 @@ public class Main {
     private int downloadReports(LocalDate startDate, LocalDate endDate) {
         staffRestTemplate.getStaffList();
         clientRestTemplate.getAllClients();
+        serviceRestTemplate.getServiceList();
         goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
         financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
         recordTransactionRestTemplate.getAllRecordTransactions(startDate, endDate);
@@ -91,8 +100,13 @@ public class Main {
         return 1;
     }
 
-    private int countDatas() {
-        dataService.countAndWriteData();
+    private int countDatasForCities() {
+        dataService.countAndWriteDataForCity();
+        return 1;
+    }
+
+    private int countSummaryData() {
+        dataService.countAndWriteSummaryData();
         return 1;
     }
 

@@ -1,4 +1,4 @@
-package pro.bigbro.models.reportUnits;
+package pro.bigbro.models.reportUnits.cities;
 
 public class MasterConversionStat {
     private String masterName;

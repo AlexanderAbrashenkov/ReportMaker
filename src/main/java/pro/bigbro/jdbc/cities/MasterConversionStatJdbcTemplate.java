@@ -1,16 +1,18 @@
-package pro.bigbro.jdbc;
+package pro.bigbro.jdbc.cities;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import pro.bigbro.models.reportUnits.MasterConversionStat;
+import pro.bigbro.models.reportUnits.cities.MasterConversionStat;
 
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Lazy
 public class MasterConversionStatJdbcTemplate {
     private JdbcTemplate jdbcTemplate;
 

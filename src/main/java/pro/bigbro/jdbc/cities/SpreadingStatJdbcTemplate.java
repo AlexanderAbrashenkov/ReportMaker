@@ -1,16 +1,18 @@
-package pro.bigbro.jdbc;
+package pro.bigbro.jdbc.cities;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import pro.bigbro.models.reportUnits.SpreadingDaysCount;
-import pro.bigbro.models.reportUnits.SpreadingStat;
+import pro.bigbro.models.reportUnits.cities.SpreadingDaysCount;
+import pro.bigbro.models.reportUnits.cities.SpreadingStat;
 
 import javax.sql.DataSource;
 import java.util.List;
 
 @Component
+@Lazy
 public class SpreadingStatJdbcTemplate {
     private JdbcTemplate jdbcTemplate;
 

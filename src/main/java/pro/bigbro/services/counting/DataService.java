@@ -1,51 +1,74 @@
 package pro.bigbro.services.counting;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import pro.bigbro.apachePoi.ExcelService;
-import pro.bigbro.jdbc.*;
+import pro.bigbro.jdbc.cities.*;
+import pro.bigbro.jdbc.total.ClientTotalJdbcTemplate;
+import pro.bigbro.jdbc.total.DataTotalJdbcTemplate;
+import pro.bigbro.jdbc.total.GeneralJdbcTemplate;
 import pro.bigbro.models.cities.City;
-import pro.bigbro.models.reportUnits.*;
+import pro.bigbro.models.jdbc.StaffJdbc;
+import pro.bigbro.models.reportUnits.cities.*;
+import pro.bigbro.models.reportUnits.total.ClientTotal;
+import pro.bigbro.models.reportUnits.total.DataTotal;
 import pro.bigbro.repositories.CityRepository;
 
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class DataService {
 
-    @Autowired
+    @Autowired @Lazy
     private CityRepository cityRepository;
+    @Autowired @Lazy
+    private CountingService countingService;
 
-    @Autowired
+    @Autowired @Lazy
+    private WorkingMonthesJdbcTemplate workingMonthesJdbcTemplate;
+    @Autowired @Lazy
+    private StaffJdbcTemplate staffJdbcTemplate;
+
+    @Autowired @Lazy
     private ExcelService excelService;
-    @Autowired
-    private GeneralInformationService generalInformationService;
-    @Autowired
+    @Autowired @Lazy
     private ClientStatJdbcTemplate clientStatJdbcTemplate;
-    @Autowired
+    @Autowired @Lazy
     private AverageClientVisitJdbcTemplate averageClientVisitJdbcTemplate;
-    @Autowired
+    @Autowired @Lazy
     private MasterConversionStatJdbcTemplate masterConversionStatJdbcTemplate;
-    @Autowired
+    @Autowired @Lazy
     private FrequencyStatJdbcTemplate frequencyStatJdbcTemplate;
-    @Autowired
+    @Autowired @Lazy
     private SpreadingStatJdbcTemplate spreadingStatJdbcTemplate;
-    @Autowired
+    @Autowired @Lazy
     private GoodsStatJdbcTemplate goodsStatJdbcTemplate;
 
-    public void countAndWriteData() {
+    @Autowired @Lazy
+    private GeneralJdbcTemplate generalJdbcTemplate;
+    @Autowired @Lazy
+    private ClientTotalJdbcTemplate clientTotalJdbcTemplate;
+    @Autowired @Lazy
+    private DataTotalJdbcTemplate dataTotalJdbcTemplate;
+
+    public void countAndWriteDataForCity() {
         List<City> cityList = (List<City>) cityRepository.findAll();
         for (City city : cityList) {
             System.out.println("[" + (cityList.indexOf(city) + 1) + "/" + cityList.size() + "] Рассчитываем данные для города " + city.getName());
             excelService.createWorkbook();
 
-            CityGeneral cityGeneral = generalInformationService.getGeneralInformationForCity(city);
+            List<WorkingMonth> workingMonthList = workingMonthesJdbcTemplate.findAllWorkingPeriodsByCity(city.getId());
+            List<StaffJdbc> workingStaffList = staffJdbcTemplate.findWorkingStaff(city.getId());
+            CityGeneral cityGeneral = new CityGeneral(city.getId(), city.getName(), workingMonthList, workingStaffList);
             excelService.writeGeneralInformation(cityGeneral);
 
             List<ClientStat> clientStatForCities;
 
             // все услуги по месяцам
-            excelService.writeCityStatHeader("Динамика по городам все услуги");
+            excelService.writeHeader("Динамика по городам все услуги");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
 
             clientStatForCities = clientStatJdbcTemplate.findAllClients(city.getId());
@@ -74,7 +97,7 @@ public class DataService {
             excelService.addEmptyRow();
 
             //стрижки по месяцам
-            excelService.writeCityStatHeader("Динамика по городам стрижки");
+            excelService.writeHeader("Динамика по городам стрижки");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
 
             clientStatForCities = clientStatJdbcTemplate.findAllClientsCut(city.getId());
@@ -103,28 +126,28 @@ public class DataService {
             excelService.addEmptyRow();
 
             // Анонимы по месяцам
-            excelService.writeCityStatHeader("Динамика по городам анонимы");
+            excelService.writeHeader("Динамика по городам анонимы");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
             clientStatForCities = clientStatJdbcTemplate.findAnonimClients(city.getId());
             excelService.writeCityClientsStat(clientStatForCities, cityGeneral.getWorkingMonthList(), "Анонимы");
             excelService.addEmptyRow();
 
             // Клиенты без ссылок по месяцам
-            excelService.writeCityStatHeader("Динамика по городам клиенты без ссылок");
+            excelService.writeHeader("Динамика по городам клиенты без ссылок");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
             clientStatForCities = clientStatJdbcTemplate.findClientsWithoutLinks(city.getId());
             excelService.writeCityClientsStat(clientStatForCities, cityGeneral.getWorkingMonthList(), "Без ссылки");
             excelService.addEmptyRow();
 
             // Потенциал
-            excelService.writeCityStatHeader("Потенциал");
+            excelService.writeHeader("Потенциал");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
             clientStatForCities = clientStatJdbcTemplate.findPotential(city.getId());
             excelService.writeCityClientsStat(clientStatForCities, cityGeneral.getWorkingMonthList(), "Потенциал");
             excelService.addEmptyRow();
 
             // Средний возраст клиентов по месяцам
-            excelService.writeCityStatHeader("Динамика по городам средний возраст клиентов");
+            excelService.writeHeader("Динамика по городам средний возраст клиентов");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
             List<AverageClientVisit> averageClientVisitList = averageClientVisitJdbcTemplate.countAverageClientVisit(city.getId());
             excelService.writeAverageClientVisit(averageClientVisitList, cityGeneral.getWorkingMonthList(), "Ср. возраст");
@@ -133,28 +156,28 @@ public class DataService {
 
             List<MasterConversionStat> masterConversionStatList;
             // Конверсия НК
-            excelService.writeCityStatHeader("Конверсия по мастерам НК");
+            excelService.writeHeader("Конверсия по мастерам НК");
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             masterConversionStatList = masterConversionStatJdbcTemplate.getAllStatNk(city.getId());
             excelService.writeConversion(masterConversionStatList, cityGeneral);
             excelService.addEmptyRow();
 
             // Конверсия ПК
-            excelService.writeCityStatHeader("Конверсия по мастерам ПК");
+            excelService.writeHeader("Конверсия по мастерам ПК");
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             masterConversionStatList = masterConversionStatJdbcTemplate.getAllStatPk(city.getId());
             excelService.writeConversion(masterConversionStatList, cityGeneral);
             excelService.addEmptyRow();
 
             // Конверсия К
-            excelService.writeCityStatHeader("Конверсия по мастерам К");
+            excelService.writeHeader("Конверсия по мастерам К");
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             masterConversionStatList = masterConversionStatJdbcTemplate.getAllStatK(city.getId());
             excelService.writeConversion(masterConversionStatList, cityGeneral);
             excelService.addEmptyRow();
 
             // Конверсия К все
-            excelService.writeCityStatHeader("Конверсия по мастерам К все");
+            excelService.writeHeader("Конверсия по мастерам К все");
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             masterConversionStatList = masterConversionStatJdbcTemplate.getAllStatKAll(city.getId());
             excelService.writeConversion(masterConversionStatList, cityGeneral);
@@ -162,7 +185,7 @@ public class DataService {
 
 
             // Частотность
-            excelService.writeCityStatHeader("Частотность");
+            excelService.writeHeader("Частотность");
             excelService.writeMonthesForConversion(cityGeneral.getWorkingMonthList());
             List<FrequencyStat> frequencyStatList = frequencyStatJdbcTemplate.getAllStats(city.getId());
             excelService.writeFrequency(frequencyStatList, cityGeneral);
@@ -170,12 +193,12 @@ public class DataService {
 
 
             // Распределение по дням
-            excelService.writeCityStatHeader("Распределение");
+            excelService.writeHeader("Распределение");
             excelService.writeDaysForSpreading();
             List<SpreadingStat> spreadingStatList = spreadingStatJdbcTemplate.getSpreadingStat(city.getId());
             excelService.writeSpreadingStat(spreadingStatList, cityGeneral);
             excelService.addEmptyRow();
-            excelService.writeCityStatHeader("Распределение");
+            excelService.writeHeader("Распределение кол-во дней");
             excelService.writeDaysForSpreading();
             List<SpreadingDaysCount> spreadingDaysCounts = spreadingStatJdbcTemplate.getSpreadingDaysCount(city.getId());
             excelService.writeSpreadingDaysCount(spreadingDaysCounts);
@@ -183,15 +206,15 @@ public class DataService {
 
 
             // Товары по месяцам
-            excelService.writeCityStatHeader("Товары по месяцам");
+            excelService.writeHeader("Товары по месяцам");
             excelService.writeMonthes(cityGeneral.getWorkingMonthList());
             List<GoodsStat> goodsStatList = goodsStatJdbcTemplate.getAllGoodsStats(city.getId());
             excelService.writeGoodsStat(goodsStatList, cityGeneral);
             excelService.addEmptyRow();
 
 
-            // Товары по местерам
-            excelService.writeCityStatHeader("Товары по мастерам");
+            // Товары по мастерам
+            excelService.writeHeader("Товары по мастерам");
             excelService.writeMonthesForGoodsByMasters(cityGeneral.getWorkingMonthList());
             List<GoodsMasterStat> goodsMasterStatList = goodsStatJdbcTemplate.getAllGoodsByMastersStat(city.getId());
             excelService.writeGoodsByMastersStat(goodsMasterStatList, cityGeneral);
@@ -200,5 +223,143 @@ public class DataService {
 
             excelService.saveWorkbook(city.getName());
         }
+    }
+
+    public void countAndWriteSummaryData() {
+        System.out.println("Рассчитываем общие данные");
+        excelService.createWorkbook();
+
+        List<ClientTotal> clientTotalList;
+        int year = generalJdbcTemplate.getLastYear();
+        int month = generalJdbcTemplate.getLastMonth(year);
+
+        //справочные
+
+
+        excelService.writeMonthes(Arrays.asList(new WorkingMonth(month, year)));
+        excelService.addEmptyRow();
+
+        // данные по клиентам
+        excelService.writeHeader("К");
+        clientTotalList = clientTotalJdbcTemplate.getK(year, month);
+        excelService.writeTotalClients(clientTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("НК");
+        clientTotalList = clientTotalJdbcTemplate.getNk(year, month);
+        excelService.writeTotalClients(clientTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("ПК");
+        clientTotalList = clientTotalJdbcTemplate.getPk(year, month);
+        excelService.writeTotalClients(clientTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Анонимы");
+        clientTotalList = clientTotalJdbcTemplate.getAnonims(year, month);
+        excelService.writeTotalClients(clientTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Без ссылки");
+        clientTotalList = clientTotalJdbcTemplate.getWithoutLinks(year, month);
+        excelService.writeTotalClients(clientTotalList);
+        excelService.addEmptyRow();
+
+
+        // Финансы
+
+        List<DataTotal> dataTotalList;
+
+        excelService.writeHeader("Услуги");
+        dataTotalList = dataTotalJdbcTemplate.getFinanceServices(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Товары");
+        dataTotalList = dataTotalJdbcTemplate.getFinanceGoods(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Выручка");
+        dataTotalList = dataTotalJdbcTemplate.getFinanceAll(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Возраст");
+        List<DataTotal> age = dataTotalJdbcTemplate.getAge(year, month);
+        excelService.writeTotalData(age);
+        excelService.addEmptyRow();
+
+        double result = countingService.countAvgRevenueByAge(dataTotalList, age, 0, 6);
+        excelService.writeSingleRow("ср. выручка до 6 мес", result);
+
+        result = countingService.countAvgRevenueByAge(dataTotalList, age, 6, 12);
+        excelService.writeSingleRow("ср. выручка 6 - 12 мес", result);
+
+        result = countingService.countAvgRevenueByAge(dataTotalList, age, 12, 100000);
+        excelService.writeSingleRow("ср. выручка от 12 мес", result);
+
+        result = countingService.countCitiesByRevenue(dataTotalList, 300_000);
+        excelService.writeSingleRow("кол-во п. с выр. От 300т", result);
+
+        result = countingService.countCitiesByRevenue(dataTotalList, 500_000);
+        excelService.writeSingleRow("кол-во п. с выр. От 500т", result);
+
+        result = countingService.countCitiesByRevenue(dataTotalList, 800_000);
+        excelService.writeSingleRow("кол-во п. с выр. От 800т", result);
+
+        result = countingService.countCitiesByRevenue(dataTotalList, 1_000_000);
+        excelService.writeSingleRow("кол-во п. с выр. От 1000т", result);
+
+        excelService.writeSingleRow("кол-во парикмахерских", dataTotalList.size());
+        excelService.writeSingleRow("кол-во дней в месяце", LocalDate.of(year, month, 1).plusMonths(1).minusDays(1).getDayOfMonth());
+        excelService.addEmptyRow();
+
+        // кол-во мастеров
+        excelService.writeHeader("Кол-во мастеров по городам");
+        dataTotalList = dataTotalJdbcTemplate.getMastersCount(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.writeSingleRow("Кол-во мастеров", dataTotalList.stream().mapToDouble(DataTotal::getValue).sum());
+        excelService.addEmptyRow();
+
+
+        // Потенциал
+        excelService.writeHeader("Потенциал");
+        dataTotalList = dataTotalJdbcTemplate.getPotential(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+
+        // Стоимость стрижки
+        excelService.writeHeader("Стоимость стрижки");
+        dataTotalList = dataTotalJdbcTemplate.getServicePrice();
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+
+        double averageCutPrice = dataTotalJdbcTemplate.getAverageCutPrice(year, month);
+        excelService.writeSingleRow("ср. стоимость стрижек", averageCutPrice);
+
+        double servicePartInRevenue = dataTotalJdbcTemplate.getServicePartInRevenue(year, month);
+        excelService.writeSingleRow("доля стрижек в выручке", servicePartInRevenue);
+        excelService.addEmptyRow();
+
+
+        // ср. мастеров в день
+        excelService.writeHeader("ср. мастеров в день");
+        dataTotalList = dataTotalJdbcTemplate.getAverageWorkingMaster(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+
+        // ср. К на мастера в день
+        excelService.writeHeader("ср. К на мастера в день");
+        dataTotalList = dataTotalJdbcTemplate.getAverageClientPerMasterPerDay(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
+        excelService.saveWorkbook("Total");
     }
 }
