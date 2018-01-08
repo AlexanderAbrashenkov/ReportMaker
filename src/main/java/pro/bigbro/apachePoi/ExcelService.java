@@ -9,6 +9,8 @@ import pro.bigbro.models.jdbc.StaffJdbc;
 import pro.bigbro.models.reportUnits.cities.*;
 import pro.bigbro.models.reportUnits.total.ClientTotal;
 import pro.bigbro.models.reportUnits.total.DataTotal;
+import pro.bigbro.models.reportUnits.total.DinamicStat;
+import pro.bigbro.models.reportUnits.total.MasterStat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -403,6 +405,50 @@ public class ExcelService {
         cell.setCellValue(s);
         cell = row.createCell(1);
         cell.setCellValue(v);
+    }
+
+    public void writeDinamicStat(List<DinamicStat> dinamicStatList) {
+        dinamicStatList.stream().sorted();
+        row = sheet.createRow(rowIndex++);
+        cell = row.createCell(0);
+        cell.setCellValue("id");
+        cell = row.createCell(1);
+        cell.setCellValue("Город");
+        cell = row.createCell(2);
+        cell.setCellValue("Год");
+        cell = row.createCell(3);
+        cell.setCellValue("Месяц");
+        cell = row.createCell(4);
+        cell.setCellValue("Данные");
+        for (DinamicStat dinamicStat : dinamicStatList) {
+            row = sheet.createRow(rowIndex++);
+            cell = row.createCell(0);
+            cell.setCellValue(dinamicStat.getCityId());
+            cell = row.createCell(1);
+            cell.setCellValue(dinamicStat.getCityName());
+            cell = row.createCell(2);
+            cell.setCellValue(dinamicStat.getYear());
+            cell = row.createCell(3);
+            cell.setCellValue(dinamicStat.getMon());
+            cell = row.createCell(4);
+            cell.setCellValue(dinamicStat.getData());
+        }
+    }
+
+    public void writeMasterStat(List<MasterStat> masterStatList) {
+        for (MasterStat masterStat : masterStatList) {
+            row = sheet.createRow(rowIndex++);
+            cell = row.createCell(0);
+            cell.setCellValue(masterStat.getCityId());
+            cell = row.createCell(1);
+            cell.setCellValue(masterStat.getCityName());
+            cell = row.createCell(2);
+            cell.setCellValue(masterStat.getMasterId());
+            cell = row.createCell(3);
+            cell.setCellValue(masterStat.getMasterName());
+            cell = row.createCell(4);
+            cell.setCellValue(masterStat.getData());
+        }
     }
 
     public void addEmptyRow() {

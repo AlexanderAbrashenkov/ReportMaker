@@ -5,14 +5,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import pro.bigbro.apachePoi.ExcelService;
 import pro.bigbro.jdbc.cities.*;
-import pro.bigbro.jdbc.total.ClientTotalJdbcTemplate;
-import pro.bigbro.jdbc.total.DataTotalJdbcTemplate;
-import pro.bigbro.jdbc.total.GeneralJdbcTemplate;
+import pro.bigbro.jdbc.total.*;
 import pro.bigbro.models.cities.City;
 import pro.bigbro.models.jdbc.StaffJdbc;
 import pro.bigbro.models.reportUnits.cities.*;
 import pro.bigbro.models.reportUnits.total.ClientTotal;
 import pro.bigbro.models.reportUnits.total.DataTotal;
+import pro.bigbro.models.reportUnits.total.DinamicStat;
+import pro.bigbro.models.reportUnits.total.MasterStat;
 import pro.bigbro.repositories.CityRepository;
 
 import java.io.IOException;
@@ -50,6 +50,9 @@ public class DataService {
     private GoodsStatJdbcTemplate goodsStatJdbcTemplate;
 
     @Autowired @Lazy
+    private DinamicStatJdbcTemplate dinamicStatJdbcTemplate;
+
+    @Autowired @Lazy
     private GeneralJdbcTemplate generalJdbcTemplate;
     @Autowired @Lazy
     private ClientTotalJdbcTemplate clientTotalJdbcTemplate;
@@ -58,6 +61,9 @@ public class DataService {
 
     @Autowired @Lazy
     private SeleniumService seleniumService;
+
+    @Autowired @Lazy
+    private MasterStatJdbcTemplate masterStatJdbcTemplate;
 
     public void countAndWriteDataForCity() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -320,6 +326,12 @@ public class DataService {
         excelService.writeSingleRow("кол-во дней в месяце", LocalDate.of(year, month, 1).plusMonths(1).minusDays(1).getDayOfMonth());
         excelService.addEmptyRow();
 
+        // дней отработано
+        excelService.writeHeader("Рабочих дней");
+        dataTotalList = dataTotalJdbcTemplate.getWorkingDays(year, month);
+        excelService.writeTotalData(dataTotalList);
+        excelService.addEmptyRow();
+
         // кол-во мастеров
         excelService.writeHeader("Кол-во мастеров по городам");
         dataTotalList = dataTotalJdbcTemplate.getMastersCount(year, month);
@@ -402,6 +414,37 @@ public class DataService {
 
         excelService.writeHeader("ср. продолжительность смены");
         excelService.writeTotalData(lengthDataMap.get(2));
+        excelService.addEmptyRow();
+
+
+        //динамика по клиентам
+        excelService.writeHeader("Динамика по клиентам");
+        List<DinamicStat> dinamicStatList = dinamicStatJdbcTemplate.getClientsDinamic();
+        excelService.writeDinamicStat(dinamicStatList);
+        excelService.addEmptyRow();
+
+        //динамика по выручке
+        excelService.writeHeader("Динамика по выручке");
+        dinamicStatList = dinamicStatJdbcTemplate.getFinancialDinamic();
+        excelService.writeDinamicStat(dinamicStatList);
+        excelService.addEmptyRow();
+
+        //доходы мастеров
+        excelService.writeHeader("Доходы мастеров");
+        List<MasterStat> masterStatList = masterStatJdbcTemplate.getMastersDailyIncome(year, month);
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //товары мастеров
+        excelService.writeHeader("Товары мастеров");
+        masterStatList = masterStatJdbcTemplate.getMastersGoods(year, month);
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //ср. товары мастеров
+        excelService.writeHeader("Ср. товары мастеров");
+        masterStatList = masterStatJdbcTemplate.getMastersAverageGoods(year, month);
+        excelService.writeMasterStat(masterStatList);
         excelService.addEmptyRow();
 
 

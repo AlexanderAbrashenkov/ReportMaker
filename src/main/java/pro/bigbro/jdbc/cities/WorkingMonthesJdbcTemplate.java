@@ -30,6 +30,14 @@ public class WorkingMonthesJdbcTemplate {
             "  and rt.attendance = 1\n" +
             "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')";
 
+    private String SQL_FIND_ALL_PERIODS = "SELECT DISTINCT\n" +
+            "  extract(year FROM rt.datetime)  AS year,\n" +
+            "  extract(month FROM rt.datetime) AS mon\n" +
+            "FROM record_transaction rt\n" +
+            "  LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "WHERE  rt.attendance = 1\n" +
+            "      AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')";
+
     private RowMapper<WorkingMonth> workingMonthesRowMapper = (resultSet, i) ->
         new WorkingMonth(
                 resultSet.getInt("mon"),
@@ -38,6 +46,12 @@ public class WorkingMonthesJdbcTemplate {
 
     public List<WorkingMonth> findAllWorkingPeriodsByCity(int cityId) {
         List<WorkingMonth> workingMonthList = jdbcTemplate.query(SQL_FIND_PERIODS_FOR_CITY, workingMonthesRowMapper, cityId);
+        Collections.sort(workingMonthList);
+        return workingMonthList;
+    }
+
+    public List<WorkingMonth> findAllWorkingPeriods() {
+        List<WorkingMonth> workingMonthList = jdbcTemplate.query(SQL_FIND_ALL_PERIODS, workingMonthesRowMapper);
         Collections.sort(workingMonthList);
         return workingMonthList;
     }

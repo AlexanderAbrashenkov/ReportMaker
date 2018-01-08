@@ -60,6 +60,25 @@ public class DataTotalJdbcTemplate {
             ") r\n" +
             "GROUP BY 1, 2";
 
+    private String SQL_WORKING_DAYS = "SELECT\n" +
+            "  r.id,\n" +
+            "  r.name,\n" +
+            "  count(*) AS res\n" +
+            "FROM (\n" +
+            "       SELECT DISTINCT\n" +
+            "         c.id,\n" +
+            "         c.name,\n" +
+            "         extract(DAY FROM rt.datetime)\n" +
+            "       FROM record_transaction rt\n" +
+            "         LEFT JOIN staff s ON s.id = rt.staff_id\n" +
+            "         LEFT JOIN city c ON c.id = rt.city_id\n" +
+            "       WHERE rt.attendance = 1\n" +
+            "             AND (rt.staff_id IS NULL OR s.use_in_records LIKE '1')\n" +
+            "             AND extract(YEAR FROM rt.datetime) = ?\n" +
+            "             AND extract(MONTH FROM rt.datetime) = ?\n" +
+            "     ) r\n" +
+            "GROUP BY 1, 2";
+
     private String SQL_MASTERS_COUNT = "SELECT r.id, r.name, count(r.name2) as res FROM (\n" +
             "  SELECT\n" +
             "  c.id,\n" +
@@ -597,6 +616,10 @@ public class DataTotalJdbcTemplate {
 
     public List<DataTotal> getAge(int year, int month) {
         return jdbcTemplate.query(SQL_AGE, dataTotalRowMapper);
+    }
+
+    public List<DataTotal> getWorkingDays(int year, int month) {
+        return jdbcTemplate.query(SQL_WORKING_DAYS, dataTotalRowMapper, year, month);
     }
 
     public List<DataTotal> getMastersCount(int year, int month) {
