@@ -8,24 +8,29 @@ import pro.bigbro.jdbc.cities.*;
 import pro.bigbro.jdbc.total.*;
 import pro.bigbro.models.cities.City;
 import pro.bigbro.models.jdbc.StaffJdbc;
+import pro.bigbro.models.reportUnits.avglength.LengthReport;
 import pro.bigbro.models.reportUnits.cities.*;
 import pro.bigbro.models.reportUnits.total.ClientTotal;
 import pro.bigbro.models.reportUnits.total.DataTotal;
 import pro.bigbro.models.reportUnits.total.DinamicStat;
 import pro.bigbro.models.reportUnits.total.MasterStat;
 import pro.bigbro.repositories.CityRepository;
+import pro.bigbro.repositories.LengthReportRepository;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class DataService {
 
     @Autowired @Lazy
     private CityRepository cityRepository;
+    @Autowired
+    private LengthReportRepository lengthReportRepository;
     @Autowired @Lazy
     private CountingService countingService;
 
@@ -401,19 +406,19 @@ public class DataService {
 
 
         // данные по продолжительности
-        List<City> cityList = (List<City>) cityRepository.findAll();
-        Map<Integer, List<DataTotal>> lengthDataMap = null;
-        try {
-            lengthDataMap = seleniumService.getLengthData(cityList, year, month);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        List<LengthReport> lengthReportList = lengthReportRepository.findAllByMonthAndYear(month, year);
+        dataTotalList = lengthReportList.stream()
+                .map(lengthReport -> new DataTotal(lengthReport.getCityId(), lengthReport.getCityName(), lengthReport.getAvgServ()))
+                .collect(Collectors.toList());
         excelService.writeHeader("ср. продолжительность услуги");
-        excelService.writeTotalData(lengthDataMap.get(1));
+        excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
+        dataTotalList = lengthReportList.stream()
+                .map(lengthReport -> new DataTotal(lengthReport.getCityId(), lengthReport.getCityName(), lengthReport.getAvgSmena()))
+                .collect(Collectors.toList());
         excelService.writeHeader("ср. продолжительность смены");
-        excelService.writeTotalData(lengthDataMap.get(2));
+        excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
 

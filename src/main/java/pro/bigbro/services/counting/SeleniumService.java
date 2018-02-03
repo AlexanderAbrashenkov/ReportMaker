@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import pro.bigbro.models.cities.City;
+import pro.bigbro.models.reportUnits.avglength.LengthReport;
 import pro.bigbro.models.reportUnits.total.DataTotal;
+import pro.bigbro.repositories.LengthReportRepository;
 import pro.bigbro.selenium.Selenium;
 
 import java.io.IOException;
@@ -22,7 +24,10 @@ import java.util.Map;
 @Component @Lazy
 public class SeleniumService {
 
-    public Map<Integer, List<DataTotal>> getLengthData(List<City> cityList, int year, int month) throws IOException, InterruptedException {
+    @Autowired
+    private LengthReportRepository lengthReportRepository;
+
+    public int downloadLengthData(List<City> cityList, int year, int month) throws IOException, InterruptedException {
         Selenium selenium = new Selenium();
 
         selenium.startChromeDriver();
@@ -38,14 +43,10 @@ public class SeleniumService {
                 .plusMonths(1)
                 .minusDays(1);
 
-        Map<Integer, List<DataTotal>> resultMap = new HashMap<>();
-
-        List<DataTotal> smenaTotalList = new ArrayList<>();
-        List<DataTotal> servTotalList = new ArrayList<>();
-
         for (City city : cityList) {
             int id = city.getId();
             String name = city.getName();
+            LengthReport lengthReport = new LengthReport(month, year, id, name);
 
             String fullLinkSmena = String.format(smenaSchema, id, startDate.format(formatter), endDate.format(formatter));
 
@@ -74,8 +75,7 @@ public class SeleniumService {
             }
             double avgSmena = workingHour / workingDay;
 
-            smenaTotalList.add(new DataTotal(id, name, avgSmena));
-
+            lengthReport.setAvgSmena(avgSmena);
 
             String fullLinkServ = String.format(servSchema, id, startDate.format(formatter), endDate.format(formatter));
 
@@ -104,13 +104,11 @@ public class SeleniumService {
             }
             double avgServ = servHour / servCount;
 
-            servTotalList.add(new DataTotal(id, name, avgServ));
+            lengthReport.setAvgServ(avgServ);
+            lengthReportRepository.save(lengthReport);
         }
 
         selenium.quitChromeDriver();
-
-        resultMap.put(1, servTotalList);
-        resultMap.put(2, smenaTotalList);
-        return resultMap;
+        return 1;
     }
 }

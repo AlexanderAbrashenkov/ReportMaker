@@ -8,6 +8,8 @@ import pro.bigbro.jdbc.cities.ServiceTypeJdbcTemplate;
 import pro.bigbro.jdbc.cities.StaffJdbcTemplate;
 import pro.bigbro.models.jdbc.ServiceTypeJdbc;
 import pro.bigbro.models.jdbc.StaffJdbc;
+import pro.bigbro.models.services.ServiceLib;
+import pro.bigbro.repositories.ServiceLibRepository;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,6 +33,9 @@ public class CorrectionService {
     private StaffJdbcTemplate staffJdbcTemplate;
     @Autowired
     private ServiceTypeJdbcTemplate serviceTypeJdbcTemplate;
+
+    @Autowired
+    private ServiceLibRepository serviceLibRepository;
 
     public void makeCorrectionsToDb() {
         System.out.println("Проставляем порядковые номера посещений");
@@ -61,6 +66,7 @@ public class CorrectionService {
                     || spec.contains("руководитель")
                     || spec.contains("управление")) {
                 staffJdbcTemplate.updateStaffMarkById(staffJdbc.getId(), "0");
+                staffJdbc.setUseInRecords("0");
             } else if (spec.contains("барбер")
                     || spec.contains("мастер")
                     || spec.contains("стажер")
@@ -68,6 +74,7 @@ public class CorrectionService {
                     || spec.contains("парикмахер")
                     || spec.contains("ученик")) {
                 staffJdbcTemplate.updateStaffMarkById(staffJdbc.getId(), "1");
+                staffJdbc.setUseInRecords("1");
             }
         });
 
@@ -97,16 +104,41 @@ public class CorrectionService {
     public void askServiceTypeIsCut() throws IOException {
         List<ServiceTypeJdbc> serviceTypeJdbcList = serviceTypeJdbcTemplate.findAllServicesWithoutMarks();
         serviceTypeJdbcList.sort(Comparator.comparing(serviceTypeJdbc -> serviceTypeJdbc.getTitle()));
+
+        List<ServiceLib> serviceLibList = (List<ServiceLib>) serviceLibRepository.findAll();
+        List<Long> notCutIds = serviceLibList.stream()
+                .filter(serviceLib -> serviceLib.getCutType() == 0)
+                .map(serviceLib -> serviceLib.getServiceId())
+                .collect(Collectors.toList());
+
+        List<Long> cutIds = serviceLibList.stream()
+                .filter(serviceLib -> serviceLib.getCutType() == 1)
+                .map(serviceLib -> serviceLib.getServiceId())
+                .collect(Collectors.toList());
+
+        serviceTypeJdbcList.removeIf(serviceTypeJdbc -> notCutIds.contains(serviceTypeJdbc.getServiceId()));
+
+        serviceTypeJdbcList.forEach(serviceTypeJdbc -> {
+            if (cutIds.contains(serviceTypeJdbc.getServiceId())) {
+                serviceTypeJdbcTemplate.updateServicesMarksById(serviceTypeJdbc.getServiceId(), 1);
+            }
+        });
+
+        serviceTypeJdbcList.removeIf(serviceTypeJdbc -> cutIds.contains(serviceTypeJdbc.getServiceId()));
+
         for (ServiceTypeJdbc serviceTypeJdbc : serviceTypeJdbcList) {
             boolean isNoAnswer = true;
             while (isNoAnswer) {
                 System.out.println("Эта услуга относится к стрижкам? 1 - да, 0 - нет");
                 System.out.println(serviceTypeJdbc.getTitle() + " (" + serviceTypeJdbc.getServiceId() + ")");
-                int answer = Integer.parseInt(reader.readLine());
-                if (answer == 1 || answer == 0) {
-                    serviceTypeJdbcTemplate.updateServicesMarksById(serviceTypeJdbc.getServiceId(), answer);
-                    isNoAnswer = false;
+                String ans = reader.readLine();
+                if (!ans.equals("0") && !ans.equals("1")) {
+                    continue;
                 }
+                int answer = Integer.parseInt(ans);
+                serviceTypeJdbcTemplate.updateServicesMarksById(serviceTypeJdbc.getServiceId(), answer);
+                serviceLibRepository.save(new ServiceLib(serviceTypeJdbc.getServiceId(), answer));
+                isNoAnswer = false;
             }
         }
         reader.close();

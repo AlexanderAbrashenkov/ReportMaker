@@ -2,14 +2,18 @@ package pro.bigbro.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pro.bigbro.models.cities.City;
+import pro.bigbro.repositories.CityRepository;
 import pro.bigbro.restTemplates.*;
 import pro.bigbro.services.corrections.CorrectionService;
 import pro.bigbro.services.counting.DataService;
+import pro.bigbro.services.counting.SeleniumService;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -32,10 +36,16 @@ public class Main {
     @Autowired
     private DataService dataService;
 
+    @Autowired
+    private SeleniumService seleniumService;
+    @Autowired
+    private CityRepository cityRepository;
+
     public void runReportMaker() {
         System.out.println("Main started");
-        LocalDate startDate = LocalDate.of(2015, 03, 01);
+        //LocalDate startDate = LocalDate.of(2015, 03, 01);
         LocalDate endDate = LocalDate.now().withDayOfMonth(1).minusDays(1);
+        LocalDate startDate = endDate.plusDays(1).minusMonths(3);
         System.out.println("Using start date: " + startDate);
         System.out.println("Using end date: " + endDate);
 
@@ -43,7 +53,7 @@ public class Main {
 
         // downloading datas
         LocalDateTime stageStart = LocalDateTime.now();
-        //returnCode = downloadReports(startDate, endDate);
+        returnCode = downloadReports(startDate, endDate);
         LocalDateTime stageFinish = LocalDateTime.now();
         reportDurationTime("Downloading", stageStart, stageFinish);
 
@@ -60,7 +70,7 @@ public class Main {
         reportDurationTime("Report Data Preparation", stageStart, stageFinish);
 
         // Высчитываем и записываем в файлы по городам данные
-        //stageStart = stageFinish;
+        stageStart = stageFinish;
         //returnCode = countDatasForCities();
         stageFinish = LocalDateTime.now();
         reportDurationTime("Counting and writing data for cities", stageStart, stageFinish);
@@ -71,17 +81,22 @@ public class Main {
         stageFinish = LocalDateTime.now();
         reportDurationTime("Counting and writing summary data", stageStart, stageFinish);
 
-
         System.exit(0);
     }
 
     private int downloadReports(LocalDate startDate, LocalDate endDate) {
-        staffRestTemplate.getStaffList();
-        clientRestTemplate.getAllClients();
-        serviceRestTemplate.getServiceList();
-        goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
-        financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
-        recordTransactionRestTemplate.getAllRecordTransactions(startDate, endDate);
+//        staffRestTemplate.getStaffList();
+//        clientRestTemplate.getAllClients();
+//        serviceRestTemplate.getServiceList();
+//        goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
+//        financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
+//        recordTransactionRestTemplate.getAllRecordTransactions(startDate, endDate);
+        List<City> cityList = (List<City>) cityRepository.findAll();
+        try {
+            seleniumService.downloadLengthData(cityList, endDate.getYear(), endDate.getMonthValue());
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
         return 1;
     }
 

@@ -23,7 +23,7 @@ public class ServiceTypeJdbcTemplate {
 
     private String SQL_FIND_SERVICES_WITHOUT_MARK = "SELECT DISTINCT cs.service_id, cs.title\n" +
             "FROM concrete_service cs\n" +
-            "WHERE cs.cut_type is NULL";
+            "WHERE cs.cut_type is NULL or cs.cut_type = 0";
 
     private String SQL_UPDATE_SERVICE_MARK = "UPDATE concrete_service SET cut_type = ?\n" +
             "WHERE service_id = ?";
