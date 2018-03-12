@@ -8,16 +8,14 @@ import pro.bigbro.jdbc.cities.*;
 import pro.bigbro.jdbc.total.*;
 import pro.bigbro.models.cities.City;
 import pro.bigbro.models.jdbc.StaffJdbc;
+import pro.bigbro.models.masters.MasterMultiCity;
 import pro.bigbro.models.reportUnits.avglength.LengthReport;
 import pro.bigbro.models.reportUnits.cities.*;
-import pro.bigbro.models.reportUnits.total.ClientTotal;
-import pro.bigbro.models.reportUnits.total.DataTotal;
-import pro.bigbro.models.reportUnits.total.DinamicStat;
-import pro.bigbro.models.reportUnits.total.MasterStat;
+import pro.bigbro.models.reportUnits.total.*;
 import pro.bigbro.repositories.CityRepository;
 import pro.bigbro.repositories.LengthReportRepository;
+import pro.bigbro.repositories.MasterMultiCityRepository;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -29,10 +27,12 @@ public class DataService {
 
     @Autowired @Lazy
     private CityRepository cityRepository;
-    @Autowired
+    @Autowired @Lazy
     private LengthReportRepository lengthReportRepository;
     @Autowired @Lazy
     private CountingService countingService;
+    @Autowired @Lazy
+    private MasterMultiCityRepository masterMultiCityRepository;
 
     @Autowired @Lazy
     private WorkingMonthesJdbcTemplate workingMonthesJdbcTemplate;
@@ -69,6 +69,12 @@ public class DataService {
 
     @Autowired @Lazy
     private MasterStatJdbcTemplate masterStatJdbcTemplate;
+    @Autowired @Lazy
+    private MasterSimpleStatJdbcTemplate masterSimpleStatJdbcTemplate;
+    @Autowired @Lazy
+    private GoodDetailedStatJdbcTemplate goodDetailedStatJdbcTemplate;
+    @Autowired @Lazy
+    private GoodDetailedTotalStatJdbcTemplate goodDetailedTotalStatJdbcTemplate;
 
     public void countAndWriteDataForCity() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -434,9 +440,40 @@ public class DataService {
         excelService.writeDinamicStat(dinamicStatList);
         excelService.addEmptyRow();
 
+        /*  МАСТЕРА  */
+        //стаж работы мастеров
+        excelService.writeHeader("Стаж работы мастеров");
+        List<MasterStat> masterStatList = masterStatJdbcTemplate.getMastersMonthesWorked();
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //общее кол-во клиентов мастеров
+        excelService.writeHeader("Общее кол-во клиентов мастера");
+        masterStatList = masterStatJdbcTemplate.getMastersClientsTotal();
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //кол-во клиентов мастеров за месяц
+        excelService.writeHeader("Кол-во клиентов мастеров за месяц");
+        masterStatList = masterStatJdbcTemplate.getMastersClientsMonth(year, month);
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //конв. мастеров 3 - все
+        excelService.writeHeader("Конв. мастеров 3 - все");
+        masterStatList = masterStatJdbcTemplate.getMastersConversion3MonthAllTime(year, month);
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
+        //конв. мастеров 3 - 3
+        excelService.writeHeader("Конв. мастеров 3 - 3");
+        masterStatList = masterStatJdbcTemplate.getMastersConversion3Month3Month(year, month);
+        excelService.writeMasterStat(masterStatList);
+        excelService.addEmptyRow();
+
         //доходы мастеров
         excelService.writeHeader("Доходы мастеров");
-        List<MasterStat> masterStatList = masterStatJdbcTemplate.getMastersDailyIncome(year, month);
+        masterStatList = masterStatJdbcTemplate.getMastersDailyIncome(year, month);
         excelService.writeMasterStat(masterStatList);
         excelService.addEmptyRow();
 
@@ -452,6 +489,72 @@ public class DataService {
         excelService.writeMasterStat(masterStatList);
         excelService.addEmptyRow();
 
+        /*  ОБЪЕДИНЕННЫЕ МАСТЕРА  */
+        List<MasterMultiCity> masterMultiCityList = (List<MasterMultiCity>) masterMultiCityRepository.findAll();
+        Map<String, List<Integer>> multiMap = masterMultiCityList.stream()
+                .collect(Collectors.groupingBy(MasterMultiCity::getCityGroupName,
+                        Collectors.mapping(MasterMultiCity::getCityId, Collectors.toList())));
+
+        System.out.println(multiMap);
+
+        //стаж работы мастеров сокр
+        excelService.writeHeader("Стаж работы мастеров сокр");
+        List<MasterSimpleStat> masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersMonthesWorked(multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //общее кол-во клиентов мастеров сокр
+        excelService.writeHeader("Общее кол-во клиентов мастера сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersClientsTotal(multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //кол-во клиентов мастеров за месяц сокр
+        excelService.writeHeader("Кол-во клиентов мастеров за месяц сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersClientsMonth(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //конв. мастеров 3 - все сокр
+        excelService.writeHeader("Конв. мастеров 3 - все сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersConversion3MonthAllTime(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //конв. мастеров 3 - 3 сокр
+        excelService.writeHeader("Конв. мастеров 3 - 3 сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersConversion3Month3Month(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //доходы мастеров сокр
+        excelService.writeHeader("Доходы мастеров сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersDailyIncome(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //товары мастеров сокр
+        excelService.writeHeader("Товары мастеров сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersGoods(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //ср. товары мастеров сокр
+        excelService.writeHeader("Ср. товары мастеров сокр");
+        masterSimpleStatList = masterSimpleStatJdbcTemplate.getMastersAverageGoods(year, month, multiMap);
+        excelService.writeMasterSimpleStat(masterSimpleStatList);
+        excelService.addEmptyRow();
+
+        //ТОВАРЫ
+        excelService.writeHeader("Детализация товаров");
+        List<GoodDetailedStat> goodDetailedStatList = goodDetailedStatJdbcTemplate.getDetailesStat(year, month);
+        excelService.writeGoodsDetailedStat(goodDetailedStatList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Детализация товаров общая");
+        List<GoodDetailedTotalStat> goodDetailedTotalStatList = goodDetailedTotalStatJdbcTemplate.getDetailesTotalStat(year, month);
+        excelService.writeGoodsDetailedTotalStat(goodDetailedTotalStatList);
+        excelService.addEmptyRow();
 
         excelService.saveWorkbook("Total");
     }

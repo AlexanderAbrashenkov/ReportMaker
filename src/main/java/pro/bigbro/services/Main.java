@@ -53,7 +53,7 @@ public class Main {
 
         // downloading datas
         LocalDateTime stageStart = LocalDateTime.now();
-        returnCode = downloadReports(startDate, endDate);
+        //returnCode = downloadReports(startDate, endDate);
         LocalDateTime stageFinish = LocalDateTime.now();
         reportDurationTime("Downloading", stageStart, stageFinish);
 
@@ -85,12 +85,12 @@ public class Main {
     }
 
     private int downloadReports(LocalDate startDate, LocalDate endDate) {
-//        staffRestTemplate.getStaffList();
-//        clientRestTemplate.getAllClients();
-//        serviceRestTemplate.getServiceList();
-//        goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
-//        financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
-//        recordTransactionRestTemplate.getAllRecordTransactions(startDate, endDate);
+        staffRestTemplate.getStaffList();
+        clientRestTemplate.getAllClients();
+        serviceRestTemplate.getServiceList();
+        goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
+        financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
+        recordTransactionRestTemplate.getAllRecordTransactions(startDate, endDate);
         List<City> cityList = (List<City>) cityRepository.findAll();
         try {
             seleniumService.downloadLengthData(cityList, endDate.getYear(), endDate.getMonthValue());
