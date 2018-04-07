@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import pro.bigbro.models.reportUnits.total.GoodDetailedTotalStat;
+import pro.bigbro.models.reportUnits.total.DetailedTotalStat;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -44,13 +44,13 @@ public class GoodDetailedTotalStatJdbcTemplate {
             "ORDER BY a.sales DESC\n" +
             "LIMIT 100;";
 
-    private RowMapper<GoodDetailedTotalStat> goodDetailedTotalStatRowMapper = (resultSet, i) ->
-            new GoodDetailedTotalStat(resultSet.getString("title"),
+    private RowMapper<DetailedTotalStat> goodDetailedTotalStatRowMapper = (resultSet, i) ->
+            new DetailedTotalStat(resultSet.getString("title"),
                     resultSet.getDouble("sales"),
                     resultSet.getDouble("amount"),
                     resultSet.getDouble("part"));
 
-    public List<GoodDetailedTotalStat> getDetailesTotalStat (int year, int month) {
+    public List<DetailedTotalStat> getDetailesTotalStat (int year, int month) {
         Map<String, Object> params = new HashMap<>();
         params.put("year", year);
         params.put("month", month);

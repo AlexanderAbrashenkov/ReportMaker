@@ -75,6 +75,8 @@ public class DataService {
     private GoodDetailedStatJdbcTemplate goodDetailedStatJdbcTemplate;
     @Autowired @Lazy
     private GoodDetailedTotalStatJdbcTemplate goodDetailedTotalStatJdbcTemplate;
+    @Autowired @Lazy
+    private ServiceDetailedStatJdbcTemplate serviceDetailedStatJdbcTemplate;
 
     public void countAndWriteDataForCity() {
         List<City> cityList = (List<City>) cityRepository.findAll();
@@ -547,13 +549,30 @@ public class DataService {
 
         //ТОВАРЫ
         excelService.writeHeader("Детализация товаров");
-        List<GoodDetailedStat> goodDetailedStatList = goodDetailedStatJdbcTemplate.getDetailesStat(year, month);
-        excelService.writeGoodsDetailedStat(goodDetailedStatList);
+        excelService.writeHeaders(new String[] {"id города", "Город", "Наименование товара", "Цена", "Продажи",
+            "Кол-во", "Факт. стоимость", "Доля"});
+        List<DetailedStat> detailedStatList = goodDetailedStatJdbcTemplate.getDetailesStat(year, month);
+        excelService.writeGoodsDetailedStat(detailedStatList);
         excelService.addEmptyRow();
 
         excelService.writeHeader("Детализация товаров общая");
-        List<GoodDetailedTotalStat> goodDetailedTotalStatList = goodDetailedTotalStatJdbcTemplate.getDetailesTotalStat(year, month);
-        excelService.writeGoodsDetailedTotalStat(goodDetailedTotalStatList);
+        excelService.writeHeaders(new String[]{"Наименование товара", "Продажи", "Кол-во", "Доля"});
+        List<DetailedTotalStat> detailedTotalStatList = goodDetailedTotalStatJdbcTemplate.getDetailesTotalStat(year, month);
+        excelService.writeGoodsDetailedTotalStat(detailedTotalStatList);
+        excelService.addEmptyRow();
+
+        //Услуги
+        excelService.writeHeader("Детализация услуг");
+        excelService.writeHeaders(new String[] {"id города", "Город", "Наименование услуги", "Цена", "Выручка",
+                "Кол-во", "Факт. стоимость", "Доля"});
+        detailedStatList = serviceDetailedStatJdbcTemplate.getDetailesStat(year, month);
+        excelService.writeGoodsDetailedStat(detailedStatList);
+        excelService.addEmptyRow();
+
+        excelService.writeHeader("Детализация услуг общая");
+        excelService.writeHeaders(new String[]{"Наименование услуги", "Выручка", "Кол-во", "Доля"});
+        detailedTotalStatList = serviceDetailedStatJdbcTemplate.getDetailesTotalStat(year, month);
+        excelService.writeGoodsDetailedTotalStat(detailedTotalStatList);
         excelService.addEmptyRow();
 
         excelService.saveWorkbook("Total");

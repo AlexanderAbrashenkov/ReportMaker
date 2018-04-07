@@ -141,6 +141,24 @@ public class CorrectionService {
                 isNoAnswer = false;
             }
         }
+    }
+
+    public void askServiceGroupes() throws IOException {
+        System.out.println("Пожалуйста, заполните таблицу с распределением товаров по группам");
+        System.out.println("SQL скрипты находятся в resources/sql/services.sql");
+        System.out.println("По завершении введите слово 'done'");
+        while (!reader.readLine().equals("done")) {
+            System.out.println("'done' для завершения");
+        }
+    }
+
+    public void askServiceCategiryIsMaster() throws IOException {
+        System.out.println("Пожалуйста, пометьте услуги с категорией 'мастер' для определения цены на услуги");
+        System.out.println("Внести коррективы надо в таблицу service_category в столбец master_category");
+        System.out.println("По завершении введите слово 'done'");
+        while (!reader.readLine().equals("done")) {
+            System.out.println("'done' для завершения");
+        }
         reader.close();
     }
 }

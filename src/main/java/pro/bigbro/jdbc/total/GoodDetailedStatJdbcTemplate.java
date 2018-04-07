@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import pro.bigbro.models.reportUnits.total.GoodDetailedStat;
+import pro.bigbro.models.reportUnits.total.DetailedStat;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -48,8 +48,8 @@ public class GoodDetailedStatJdbcTemplate {
             "      AND extract(MONTH FROM rt.create_date) = :month\n" +
             "GROUP BY 1) b on a.city_id = b.city_id";
 
-    private RowMapper<GoodDetailedStat> goodStatRowMapper = (resultSet, i) ->
-            new GoodDetailedStat(resultSet.getInt("city_id"),
+    private RowMapper<DetailedStat> goodStatRowMapper = (resultSet, i) ->
+            new DetailedStat(resultSet.getInt("city_id"),
                     resultSet.getString("city_name"),
                     resultSet.getString("title"),
                     resultSet.getDouble("price"),
@@ -58,7 +58,7 @@ public class GoodDetailedStatJdbcTemplate {
                     resultSet.getDouble("fact"),
                     resultSet.getDouble("part"));
 
-    public List<GoodDetailedStat> getDetailesStat (int year, int month) {
+    public List<DetailedStat> getDetailesStat (int year, int month) {
         Map<String, Object> params = new HashMap<>();
         params.put("year", year);
         params.put("month", month);

@@ -11,6 +11,7 @@ public class ServiceLib {
     private long id;
     private long serviceId;
     private int cutType;
+    private Integer serviceGroupId;
 
     public ServiceLib() {
     }
@@ -42,5 +43,13 @@ public class ServiceLib {
 
     public void setCutType(int cutType) {
         this.cutType = cutType;
+    }
+
+    public Integer getServiceGroupId() {
+        return serviceGroupId;
+    }
+
+    public void setServiceGroupId(Integer serviceGroupId) {
+        this.serviceGroupId = serviceGroupId;
     }
 }

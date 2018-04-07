@@ -1,15 +1,15 @@
 package pro.bigbro.models.reportUnits.total;
 
-public class GoodDetailedTotalStat {
+public class DetailedTotalStat {
     private String title;
     private double sales;
     private double amount;
     private double part;
 
-    public GoodDetailedTotalStat() {
+    public DetailedTotalStat() {
     }
 
-    public GoodDetailedTotalStat(String title, double sales, double amount, double part) {
+    public DetailedTotalStat(String title, double sales, double amount, double part) {
         this.title = title;
         this.sales = sales;
         this.amount = amount;

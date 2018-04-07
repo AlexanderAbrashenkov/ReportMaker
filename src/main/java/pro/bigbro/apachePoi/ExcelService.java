@@ -460,39 +460,47 @@ public class ExcelService {
         }
     }
 
-    public void writeGoodsDetailedStat(List<GoodDetailedStat> goodDetailedStatList) {
-        for(GoodDetailedStat goodDetailedStat : goodDetailedStatList) {
+    public void writeGoodsDetailedStat(List<DetailedStat> detailedStatList) {
+        for(DetailedStat detailedStat : detailedStatList) {
             row = sheet.createRow(rowIndex++);
             cell = row.createCell(0);
-            cell.setCellValue(goodDetailedStat.getCityId());
+            cell.setCellValue(detailedStat.getCityId());
             cell = row.createCell(1);
-            cell.setCellValue(goodDetailedStat.getCityName());
+            cell.setCellValue(detailedStat.getCityName());
             cell = row.createCell(2);
-            cell.setCellValue(goodDetailedStat.getTitle());
+            cell.setCellValue(detailedStat.getTitle());
             cell = row.createCell(3);
-            cell.setCellValue(goodDetailedStat.getPrice());
+            cell.setCellValue(detailedStat.getPrice());
             cell = row.createCell(4);
-            cell.setCellValue(goodDetailedStat.getSales());
+            cell.setCellValue(detailedStat.getSales());
             cell = row.createCell(5);
-            cell.setCellValue(goodDetailedStat.getAmount());
+            cell.setCellValue(detailedStat.getAmount());
             cell = row.createCell(6);
-            cell.setCellValue(goodDetailedStat.getFact());
+            cell.setCellValue(detailedStat.getFact());
             cell = row.createCell(7);
-            cell.setCellValue(goodDetailedStat.getPart());
+            cell.setCellValue(detailedStat.getPart());
         }
     }
 
-    public void writeGoodsDetailedTotalStat(List<GoodDetailedTotalStat> goodDetailedTotalStatList) {
-        for (GoodDetailedTotalStat goodDetailedTotalStat : goodDetailedTotalStatList) {
+    public void writeGoodsDetailedTotalStat(List<DetailedTotalStat> detailedTotalStatList) {
+        for (DetailedTotalStat detailedTotalStat : detailedTotalStatList) {
             row = sheet.createRow(rowIndex++);
             cell = row.createCell(0);
-            cell.setCellValue(goodDetailedTotalStat.getTitle());
+            cell.setCellValue(detailedTotalStat.getTitle());
             cell = row.createCell(1);
-            cell.setCellValue(goodDetailedTotalStat.getSales());
+            cell.setCellValue(detailedTotalStat.getSales());
             cell = row.createCell(2);
-            cell.setCellValue(goodDetailedTotalStat.getAmount());
+            cell.setCellValue(detailedTotalStat.getAmount());
             cell = row.createCell(3);
-            cell.setCellValue(goodDetailedTotalStat.getPart());
+            cell.setCellValue(detailedTotalStat.getPart());
+        }
+    }
+
+    public void writeHeaders(String[] strings) {
+        row = sheet.createRow(rowIndex++);
+        for (int i = 0; i < strings.length; i++) {
+            cell = row.createCell(i);
+            cell.setCellValue(strings[i]);
         }
     }
 

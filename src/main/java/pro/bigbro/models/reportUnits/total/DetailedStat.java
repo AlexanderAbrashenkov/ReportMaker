@@ -1,6 +1,6 @@
 package pro.bigbro.models.reportUnits.total;
 
-public class GoodDetailedStat {
+public class DetailedStat {
     private int cityId;
     private String cityName;
     private String title;
@@ -10,10 +10,10 @@ public class GoodDetailedStat {
     private double fact;
     private double part;
 
-    public GoodDetailedStat() {
+    public DetailedStat() {
     }
 
-    public GoodDetailedStat(int cityId, String cityName, String title, double price, double sales, double amount, double fact, double part) {
+    public DetailedStat(int cityId, String cityName, String title, double price, double sales, double amount, double fact, double part) {
         this.cityId = cityId;
         this.cityName = cityName;
         this.title = title;

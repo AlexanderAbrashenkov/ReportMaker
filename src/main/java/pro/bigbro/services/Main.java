@@ -23,6 +23,8 @@ public class Main {
     @Autowired
     private ClientRestTemplate clientRestTemplate;
     @Autowired
+    private ServiceCategoryRestTemplate serviceCategoryRestTemplate;
+    @Autowired
     private ServiceRestTemplate serviceRestTemplate;
     @Autowired
     private GoodsTransactionRestTemplate goodsTransactionRestTemplate;
@@ -45,7 +47,7 @@ public class Main {
         System.out.println("Main started");
         //LocalDate startDate = LocalDate.of(2015, 03, 01);
         LocalDate endDate = LocalDate.now().withDayOfMonth(1).minusDays(1);
-        LocalDate startDate = endDate.plusDays(1).minusMonths(3);
+        LocalDate startDate = endDate.plusDays(1).minusMonths(2);
         System.out.println("Using start date: " + startDate);
         System.out.println("Using end date: " + endDate);
 
@@ -87,6 +89,7 @@ public class Main {
     private int downloadReports(LocalDate startDate, LocalDate endDate) {
         staffRestTemplate.getStaffList();
         clientRestTemplate.getAllClients();
+        serviceCategoryRestTemplate.getServiceCategoryList();
         serviceRestTemplate.getServiceList();
         goodsTransactionRestTemplate.getAllGoodsTransactions(startDate, endDate);
         financialTransactionRestTemplate.getAllFinancialTransactions(startDate, endDate);
@@ -104,6 +107,8 @@ public class Main {
         try {
             correctionService.askStaffIsMaster();
             correctionService.askServiceTypeIsCut();
+            correctionService.askServiceGroupes();
+            correctionService.askServiceCategiryIsMaster();
         } catch (IOException e) {
             e.printStackTrace();
         }
