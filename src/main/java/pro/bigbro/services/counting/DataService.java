@@ -258,32 +258,37 @@ public class DataService {
         int month = generalJdbcTemplate.getLastMonth(year);
 
         //справочные
-
+        System.out.println("--- Справочные данные ---");
 
         excelService.writeMonthes(Arrays.asList(new WorkingMonth(month, year)));
         excelService.addEmptyRow();
 
         // данные по клиентам
+        System.out.println("--- К ---");
         excelService.writeHeader("К");
         clientTotalList = clientTotalJdbcTemplate.getK(year, month);
         excelService.writeTotalClients(clientTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- НК ---");
         excelService.writeHeader("НК");
         clientTotalList = clientTotalJdbcTemplate.getNk(year, month);
         excelService.writeTotalClients(clientTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- ПК ---");
         excelService.writeHeader("ПК");
         clientTotalList = clientTotalJdbcTemplate.getPk(year, month);
         excelService.writeTotalClients(clientTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- Анонимы ---");
         excelService.writeHeader("Анонимы");
         clientTotalList = clientTotalJdbcTemplate.getAnonims(year, month);
         excelService.writeTotalClients(clientTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- Без ссылки ---");
         excelService.writeHeader("Без ссылки");
         clientTotalList = clientTotalJdbcTemplate.getWithoutLinks(year, month);
         excelService.writeTotalClients(clientTotalList);
@@ -294,26 +299,31 @@ public class DataService {
 
         List<DataTotal> dataTotalList;
 
+        System.out.println("--- Услуги ---");
         excelService.writeHeader("Услуги");
         dataTotalList = dataTotalJdbcTemplate.getFinanceServices(year, month);
         excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- Товары ---");
         excelService.writeHeader("Товары");
         dataTotalList = dataTotalJdbcTemplate.getFinanceGoods(year, month);
         excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- Выручка ---");
         excelService.writeHeader("Выручка");
         dataTotalList = dataTotalJdbcTemplate.getFinanceAll(year, month);
         excelService.writeTotalData(dataTotalList);
         excelService.addEmptyRow();
 
+        System.out.println("--- Возраст ---");
         excelService.writeHeader("Возраст");
         List<DataTotal> age = dataTotalJdbcTemplate.getAge(year, month);
         excelService.writeTotalData(age);
         excelService.addEmptyRow();
 
+        System.out.println("--- Данные для показателей сетей ---");
         double result = countingService.countAvgRevenueByAge(dataTotalList, age, 0, 6);
         excelService.writeSingleRow("ср. выручка до 6 мес", result);
 
@@ -356,6 +366,7 @@ public class DataService {
 
 
         // Потенциал
+        System.out.println("--- Потенциал ---");
         excelService.writeHeader("Потенциал");
         dataTotalList = dataTotalJdbcTemplate.getPotential(year, month);
         excelService.writeTotalData(dataTotalList);
@@ -363,6 +374,7 @@ public class DataService {
 
 
         // Стоимость стрижки
+        System.out.println("--- Стоимость стрижки ---");
         excelService.writeHeader("Стоимость стрижки");
         dataTotalList = dataTotalJdbcTemplate.getServicePrice();
         excelService.writeTotalData(dataTotalList);
@@ -378,6 +390,7 @@ public class DataService {
 
 
         // ср. мастеров в день
+        System.out.println("--- ср. мастеров в день ---");
         excelService.writeHeader("ср. мастеров в день");
         dataTotalList = dataTotalJdbcTemplate.getAverageWorkingMaster(year, month);
         excelService.writeTotalData(dataTotalList);
@@ -385,6 +398,7 @@ public class DataService {
 
 
         // ср. К на мастера в день
+        System.out.println("--- ср. К на мастера в день ---");
         excelService.writeHeader("ср. К на мастера в день");
         dataTotalList = dataTotalJdbcTemplate.getAverageClientPerMasterPerDay(year, month);
         excelService.writeTotalData(dataTotalList);
@@ -392,6 +406,7 @@ public class DataService {
 
 
         // конверсия
+        System.out.println("--- конверсия ---");
         int kYear = countingService.yearForConversion(year, month, 2);
         int kMonth = countingService.monthForConversion(year, month, 2);
         getAllTypesOfConversion(2, kYear, kMonth, 60);
@@ -414,6 +429,7 @@ public class DataService {
 
 
         // данные по продолжительности
+        System.out.println("--- ср. продолжительность услуги и смены ---");
         List<LengthReport> lengthReportList = lengthReportRepository.findAllByMonthAndYear(month, year);
         dataTotalList = lengthReportList.stream()
                 .map(lengthReport -> new DataTotal(lengthReport.getCityId(), lengthReport.getCityName(), lengthReport.getAvgServ()))
@@ -431,18 +447,21 @@ public class DataService {
 
 
         //динамика по клиентам
+        System.out.println("--- Динамика по клиентам ---");
         excelService.writeHeader("Динамика по клиентам");
         List<DinamicStat> dinamicStatList = dinamicStatJdbcTemplate.getClientsDinamic();
         excelService.writeDinamicStat(dinamicStatList);
         excelService.addEmptyRow();
 
         //динамика по выручке
+        System.out.println("--- Динамика по выручке ---");
         excelService.writeHeader("Динамика по выручке");
         dinamicStatList = dinamicStatJdbcTemplate.getFinancialDinamic();
         excelService.writeDinamicStat(dinamicStatList);
         excelService.addEmptyRow();
 
         /*  МАСТЕРА  */
+        System.out.println("--- Данные по мастерам ---");
         //стаж работы мастеров
         excelService.writeHeader("Стаж работы мастеров");
         List<MasterStat> masterStatList = masterStatJdbcTemplate.getMastersMonthesWorked();
@@ -548,6 +567,7 @@ public class DataService {
         excelService.addEmptyRow();
 
         //ТОВАРЫ
+        System.out.println("--- Товары ---");
         excelService.writeHeader("Детализация товаров");
         excelService.writeHeaders(new String[] {"id города", "Город", "Наименование товара", "Цена", "Продажи",
             "Кол-во", "Факт. стоимость", "Доля"});
@@ -562,6 +582,7 @@ public class DataService {
         excelService.addEmptyRow();
 
         //Услуги
+        System.out.println("--- Услуги ---");
         excelService.writeHeader("Детализация услуг");
         excelService.writeHeaders(new String[] {"id города", "Город", "Наименование услуги", "Цена", "Выручка",
                 "Кол-во", "Факт. стоимость", "Доля"});

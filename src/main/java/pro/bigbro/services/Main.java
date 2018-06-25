@@ -55,25 +55,25 @@ public class Main {
 
         // downloading datas
         LocalDateTime stageStart = LocalDateTime.now();
-        //returnCode = downloadReports(startDate, endDate);
+        returnCode = downloadReports(startDate, endDate);
         LocalDateTime stageFinish = LocalDateTime.now();
         reportDurationTime("Downloading", stageStart, stageFinish);
 
         // Пометить мастеров, стрижки
         stageStart = stageFinish;
-        //returnCode = askForNewElementsMarks();
+        returnCode = askForNewElementsMarks();
         stageFinish = LocalDateTime.now();
         reportDurationTime("Asking marks for new elements", stageStart, stageFinish);
 
         // Проставить все необходимые данные по посещениям, подкорректировать базу
         stageStart = stageFinish;
-        //returnCode = prepareReportDatas();
+        returnCode = prepareReportDatas();
         stageFinish = LocalDateTime.now();
         reportDurationTime("Report Data Preparation", stageStart, stageFinish);
 
         // Высчитываем и записываем в файлы по городам данные
         stageStart = stageFinish;
-        //returnCode = countDatasForCities();
+        returnCode = countDatasForCities();
         stageFinish = LocalDateTime.now();
         reportDurationTime("Counting and writing data for cities", stageStart, stageFinish);
 

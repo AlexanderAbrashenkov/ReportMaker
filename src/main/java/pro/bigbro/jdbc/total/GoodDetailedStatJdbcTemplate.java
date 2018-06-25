@@ -22,8 +22,8 @@ public class GoodDetailedStatJdbcTemplate {
     }
 
     private final String SQL_DATAILED_STAT = "SELECT a.city_id, a.city_name, a.title, a.price, a.sales, a.amount,\n" +
-            "  a.sales / a.amount :: FLOAT as fact,\n" +
-            "  a.sales / b.sales :: FLOAT as part\n" +
+            "  CASE WHEN a.amount <> 0 THEN a.sales / a.amount :: FLOAT ELSE 0 end as fact,\n" +
+            "  case when b.sales <> 0 THEN a.sales / b.sales :: FLOAT ELSE 0 end as part\n" +
             "  from (\n" +
             "SELECT\n" +
             "  rt.city_id,\n" +
